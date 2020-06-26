@@ -20,6 +20,7 @@ limitations under the License.
 #include <string>
 #include <thread>
 #include <boost/algorithm/string.hpp>
+#include <cctype>
 #include "commands.h"
 #include "lms.h"
 #include "version.h"
@@ -31,10 +32,12 @@ using namespace web::websockets::client;
 #include <cpprest/json.h>
 
 void showUsage();
+bool isPrintable(std::string str);
 
 string websocket_address  = "";
 string server_profile = "";
 string websocket_proxy = "";
+string dns_suffix = "";
 
 long long timeoutTimer = 0;
 const int MAX_TIMEOUT = 10; // seconds
@@ -79,13 +82,13 @@ int main(int argc, char *argv[])
     
     if (argc==1)
     {
-        std::cout << "Use --h, --help for help." << std::endl;
+        std::cout << "Use -h, --help for help." << std::endl;
         return 0;
     }
 
     for (int i=1; i<argc; i++)
     {
-        if ( (boost::equals(argv[i], "--help")) || (boost::equals(argv[i], "--h"))  )
+        if ( (boost::equals(argv[i], "--help")) || (boost::equals(argv[i], "-h"))  )
         {
             showUsage();
             return 0;
@@ -94,34 +97,70 @@ int main(int argc, char *argv[])
 
     for (int i=1; i<argc; i++)
     {
-        if ( (boost::equals(argv[i], "--url"))  || (boost::equals(argv[i], "--u")) )
+        if ( (boost::equals(argv[i], "--url"))  || (boost::equals(argv[i], "-u")) )
         {
             if (i+1<argc) 
             {
                 gotURL = true;
                 websocket_address = argv[++i];
+
+                if (!isPrintable(websocket_address))
+                {
+                    std::cout << "Input contains invalid characters." << std::endl;
+                    std::cout << "Use -h, --help for help." << std::endl;
+                    return 0;
+                }
             }
         } 
-        else if ( (boost::equals(argv[i], "--profile")) || (boost::equals(argv[i], "--p")) )
+        else if ( (boost::equals(argv[i], "--profile")) || (boost::equals(argv[i], "-p")) )
         {
             if (i+1<argc) 
             {
                 gotProfile = true;
                 server_profile = argv[++i];
+
+                if (!isPrintable(server_profile))
+                {
+                    std::cout << "Input contains invalid characters." << std::endl;
+                    std::cout << "Use -h, --help for help." << std::endl;
+                    return 0;
+                }
             }
         }
-        else if ( (boost::equals(argv[i], "--proxy")) ||(boost::equals(argv[i], "--x")) )
+        else if ( (boost::equals(argv[i], "--proxy")) ||(boost::equals(argv[i], "-x")) )
         {
             if (i+1<argc) 
             {
                 gotProxy = true;
                 websocket_proxy = argv[++i];
+
+                if (!isPrintable(websocket_proxy))
+                {
+                    std::cout << "Input contains invalid characters." << std::endl;
+                    std::cout << "Use -h, --help for help." << std::endl;
+                    return 0;
+                }
+            }
+        }
+        else if ( (boost::equals(argv[i], "--dns")) ||(boost::equals(argv[i], "-d")) )
+        {
+            if (i+1<argc) 
+            {
+                gotDns = true;
+                dns_suffix = argv[++i];
+
+                if (!isPrintable(dns_suffix))
+                {
+                    std::cout << "Input contains invalid characters." << std::endl;
+                    std::cout << "Use -h, --help for help." << std::endl;
+                    return 0;
+                }
             }
         }
         else
         {
             std::cout << "Unrecognized command line arguments." << std::endl;
-            std::cout << "Use --h, --help for help." << std::endl;
+            std::cout << "Use -h, --help for help." << std::endl;
             return 0;
         }
         
@@ -130,7 +169,7 @@ int main(int argc, char *argv[])
     if (!gotURL || !gotProfile)
     {
         std::cout << "Incorrect or missing arguments." << std::endl;
-        std::cout << "Use --h, --help for help." << std::endl;
+        std::cout << "Use -h, --help for help." << std::endl;
         return 0;
     }
 
@@ -139,7 +178,7 @@ int main(int argc, char *argv[])
 
     try {
         // Get activation info
-        activationInfo = createActivationRequest(server_profile);
+        activationInfo = createActivationRequest(server_profile, dns_suffix);
     }
     catch (...)
     {
@@ -463,18 +502,32 @@ int main(int argc, char *argv[])
     exit(0);
 }
 
+bool isPrintable(std::string str)
+{
+    for (char c : str)
+    {
+        if (!std::isprint(c))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void showUsage()
 {
     cout << "Usage: " << PROJECT_NAME << " --url <url> --profile <name> [--proxy <addr>]" << endl;
     cout << "Required:" << endl;
-    cout << "  --u, --url <url>                 websocket server" << endl;
-    cout << "  --p, --profile <name>            server profile" << endl;
+    cout << "  -u, --url <url>                 websocket server" << endl;
+    cout << "  -p, --profile <name>            server profile" << endl;
     cout << "Optional:" << endl;
-    cout << "  --x, --proxy <addr>              proxy address and port" << endl;
+    cout << "  -x, --proxy <addr>              proxy address and port" << endl;
+    cout << "  -d, --dns <dns>                 dns suffix" << endl;
     cout << endl;
     cout << "Examples:" << endl;
     cout << "  " << PROJECT_NAME << " --url wss://localhost --profile profile1" << endl;
-    cout << "  " << PROJECT_NAME << " --u wss://localhost --profile profile1 --proxy http://proxy.com:1000" << endl;
-    cout << "  " << PROJECT_NAME << " --u wss://localhost --p profile1 --x http://proxy.com:1000" << endl;
+    cout << "  " << PROJECT_NAME << " -u wss://localhost --profile profile1 --proxy http://proxy.com:1000" << endl;
+    cout << "  " << PROJECT_NAME << " -u wss://localhost -p profile1 -x http://proxy.com:1000" << endl;
     cout << endl;
 }

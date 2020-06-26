@@ -297,7 +297,7 @@ std::string getDNSInfo()
 }
 
 
-string getActivateInfo(string profile)
+string getActivateInfo(string profile, string dnssuffixcmd)
 {
     utility::string_t tmp;
 
@@ -356,7 +356,17 @@ string getActivateInfo(string profile)
 
     // Get DNS Info
     tmp = utility::conversions::convertstring("");
-    string dnsSuffix = getDNSInfo();
+    string dnsSuffix = "";
+    if (dnssuffixcmd.length() > 0)
+    {
+        // use what's passed in
+        dnsSuffix = dnssuffixcmd;
+    }
+    else
+    {
+        // get it from AMT or OS
+        dnsSuffix = getDNSInfo();
+    }
 
     if (dnsSuffix.length())
     {
@@ -401,7 +411,7 @@ string decodeBase64(string str)
     return decodedString;
 }
 
-string createActivationRequest(string profile)
+string createActivationRequest(string profile, string dnssuffixcmd)
 {
     // Activation parameters
     json::value request;
@@ -426,7 +436,7 @@ string createActivationRequest(string profile)
     request[U("message")] = json::value::string(tmp);
 
     // payload 
-    string activationInfo = getActivateInfo(profile);
+    string activationInfo = getActivateInfo(profile, dnssuffixcmd);
     utility::string_t payload =  utility::conversions::to_string_t(activationInfo);
 
     request[U("payload")] = json::value::string(payload);
