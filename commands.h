@@ -37,10 +37,10 @@ using namespace web;
 #endif
 
 string getDNSInfo();
-string createActivationRequest(string profile);
+string createActivationRequest(string profile, string dnssuffixcmd);
 json::value getCertificateHashes();
 string createResponse(string payload);
-string getActivateInfo(string profile);
+string getActivateInfo(string profile, string dnssuffixcmd);
 string encodeBase64(string str);
 string decodeBase64(string str);
 void dumpMessage(string tmp);
