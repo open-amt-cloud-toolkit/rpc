@@ -11,6 +11,9 @@ Steps below are for Ubuntu 18.04.
 ### Dependencies
 
 - sudo apt install git cmake build-essential libboost-system-dev  libboost-thread-dev libboost-random-dev libboost-regex-dev libboost-filesystem-dev libssl-dev zlib1g-dev
+- RPC requires CMake version 3.17.
+  - Please use "cmake --version" to check version.
+  - CMake be downloaded from <https://cmake.org/download/>.
 
 ### Build
 
@@ -29,6 +32,12 @@ Steps below are for Ubuntu 18.04.
 ## Windows
 
 Steps below are for Windows 10 and Visual Studio 2019 Professional.
+
+### Dependencies
+
+- RPC requires CMake version 3.17, which is included with Visual Studio 2019.
+  - Please use "cmake --version" to check version.
+  - CMake can be downloaded from <https://cmake.org/download/>.
 
 ### Build VCPKG
 
