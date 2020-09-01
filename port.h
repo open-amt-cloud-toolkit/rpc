@@ -14,31 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef __LMS_H__
-#define __LMS_H__
+#ifndef __PORT_H__
+#define __PORT_H__
 
-#include <iostream>
-#include <string>
+#include <string.h>
 
-#ifdef _WIN32
-#include <winsock2.h>
-#else
-#include <unistd.h>
-typedef int SOCKET;
-#define INVALID_SOCKET (SOCKET)(-1)
-#endif
+extern "C"
+{
+    // main entry into microlms
+    extern int main_micro_lms();
+}
+
 
 #ifdef _WIN32
 // Windows
+#define strncpy    strncpy_s
+#define strcasecmp    _stricmp
 #else
 // Linux
-static inline int closesocket(int fd)
-{
-    return close(fd);
-}
-#define SD_BOTH SHUT_RDWR
 #endif
-
-SOCKET lms_connect();
 
 #endif

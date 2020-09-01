@@ -1,0 +1,95 @@
+/*
+Copyright 2019 Intel Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+#include "args.h"
+#include <string>
+#include "port.h"
+#include "utils.h"
+
+bool get_arg_exists(int argc, char* argv[], const char* long_opt, const char* short_opt)
+{
+    for (int i = 1; i < argc; i++)
+    {
+        if ((strcasecmp(argv[i], long_opt) == 0) || (strcasecmp(argv[i], short_opt) == 0))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool get_arg_string(int argc, char* argv[], const char* long_opt, const char* short_opt, std::string& value)
+{
+    value = "";
+    
+    for (int i = 1; i < argc; i++)
+    {
+        if ((strcasecmp(argv[i], long_opt) == 0) || (strcasecmp(argv[i], short_opt) == 0))
+        {
+            if (i + 1 < argc)
+            {
+                std::string tmp = argv[++i];
+
+                if (!util_is_printable(tmp))
+                {
+                    return false;
+                }
+
+                value = tmp;
+
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool args_get_help(int argc, char* argv[])
+{
+    return get_arg_exists(argc, argv, "--help", "-h");
+}
+
+bool args_get_version(int argc, char* argv[])
+{
+    return get_arg_exists(argc, argv, "--version", "-v");
+}
+
+bool args_get_url(int argc, char* argv[], std::string& url)
+{
+    return get_arg_string(argc, argv, "--url", "-u", url);
+}
+
+bool args_get_proxy(int argc, char* argv[], std::string& proxy)
+{
+    return get_arg_string(argc, argv, "--proxy", "-x", proxy);
+}
+
+bool args_get_cmd(int argc, char* argv[], std::string& cmd)
+{
+    return get_arg_string(argc, argv, "--cmd", "-c", cmd);
+}
+
+bool args_get_dns(int argc, char* argv[], std::string& dns)
+{
+    return get_arg_string(argc, argv, "--dns", "-d", dns);
+}
+
+bool args_get_info(int argc, char* argv[], std::string& info)
+{
+    return get_arg_string(argc, argv, "--info", "-i", info);
+}

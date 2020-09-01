@@ -14,20 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef __COMMANDS_H__
-#define __COMMANDS_H__
+#ifndef __UTILS_H__
+#define __UTILS_H__
 
-#include <vector>
 #include <string>
+#include <vector>
 
-bool cmd_get_version(std::string& version);
-bool cmd_get_build_number(std::string& version);
-bool cmd_get_sku(std::string& version);
-bool cmd_get_uuid(std::vector<unsigned char>& uuid);
-bool cmd_get_local_system_account(std::string& username, std::string& password);
-bool cmd_get_control_mode(int& mode);
-bool cmd_get_dns_suffix(std::string& suffix);
-bool cmd_get_wired_mac_address(std::vector<unsigned char>& address);
-bool cmd_get_certificate_hashes(std::vector<std::string>& hashes);
+std::string util_encode_base64(std::string str);
+std::string util_decode_base64(std::string str);
+bool util_is_printable(std::string str);
+bool util_format_uuid(std::vector<unsigned char> uuid_bytes, std::string& uuid_string);
 
 #endif

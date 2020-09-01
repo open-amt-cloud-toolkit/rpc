@@ -14,54 +14,45 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <cpprest/ws_client.h>
-#include <cpprest/streams.h>
-#include <iostream>
 #include <string>
 #include <thread>
-#include <boost/algorithm/string.hpp>
-#include <cctype>
-#include "commands.h"
-#include "lms.h"
-#include "version.h"
-
-using namespace std;
-using namespace web;
-using namespace web::websockets::client;
-
+#include <cpprest/ws_client.h>
 #include <cpprest/json.h>
+#include "port.h"
+#include "lms.h"
+#include "commands.h"
+#include "activation.h"
+#include "utils.h"
+#include "usage.h"
+#include "args.h"
+#include "info.h"
 
-void showUsage();
-bool isPrintable(std::string str);
+// timer thread globals
+long long  g_timeout_val     = 0;
+const int  g_timeout_max     = 10;
+bool       g_thread_alive    = true;
 
-string websocket_address  = "";
-string server_profile = "";
-string websocket_proxy = "";
-string dns_suffix = "";
-
-long long timeoutTimer = 0;
-const int MAX_TIMEOUT = 10; // seconds
-bool timeoutThreadAlive = true;
-
-void timeoutFunc(std::condition_variable *cv, std::mutex *mx)
+// timeout thread function
+// used to exit application in case a timeout occurs
+void timeout_thread_function(std::condition_variable *cv, std::mutex *mx)
 {
-    while (timeoutThreadAlive) 
+    while (g_thread_alive)
     {
         std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
         auto duration = now.time_since_epoch();
         long long currTime = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
 
-        if (currTime > timeoutTimer) 
+        if (currTime > g_timeout_val)
         {
-            if (currTime - timeoutTimer >= MAX_TIMEOUT) 
+            if (currTime - g_timeout_val >= g_timeout_max)
             {
                 cv->notify_all();
 
                 // check if timeoutTimer is not 0 since we explicitly set to zero when an
                 // activation is successfull. If it's not zero, we are in a time out scenario.
-                if (timeoutTimer)
+                if (g_timeout_val)
                 {
-                    cout << endl << "Timed-out due to inactivity." <<endl;
+                    std::cout << std::endl << "Timed-out due to inactivity." << std::endl;
                 }
                 break;
             }
@@ -71,102 +62,48 @@ void timeoutFunc(std::condition_variable *cv, std::mutex *mx)
     }
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-    string activationInfo;
+    std::string activation_info;
+    std::string arg_url;
+    std::string arg_proxy;
+    std::string arg_cmd;
+    std::string arg_dns;
+    std::string arg_info;
 
-    bool gotURL = false;
-    bool gotProfile = false;
-    bool gotProxy = false;
-    bool gotDns = false;
-    
-    if (argc==1)
+    if (argc == 1)
     {
         std::cout << "Use -h, --help for help." << std::endl;
         return 0;
     }
 
-    for (int i=1; i<argc; i++)
+    // get for help
+    if (args_get_help(argc, argv))
     {
-        if ( (boost::equals(argv[i], "--help")) || (boost::equals(argv[i], "-h"))  )
-        {
-            showUsage();
-            return 0;
-        }
+        usage_show_help();
+        return 0;
     }
 
-    for (int i=1; i<argc; i++)
+    // check for version
+    if (args_get_version(argc, argv))
     {
-        if ( (boost::equals(argv[i], "--url"))  || (boost::equals(argv[i], "-u")) )
-        {
-            if (i+1<argc) 
-            {
-                gotURL = true;
-                websocket_address = argv[++i];
+        usage_show_version();
+        return 0;
+    }
 
-                if (!isPrintable(websocket_address))
-                {
-                    std::cout << "Input contains invalid characters." << std::endl;
-                    std::cout << "Use -h, --help for help." << std::endl;
-                    return 0;
-                }
-            }
-        } 
-        else if ( (boost::equals(argv[i], "--profile")) || (boost::equals(argv[i], "-p")) )
+    // check for info
+    if (args_get_info(argc, argv, arg_info))
+    {
+        if (!info_get(arg_info))
         {
-            if (i+1<argc) 
-            {
-                gotProfile = true;
-                server_profile = argv[++i];
-
-                if (!isPrintable(server_profile))
-                {
-                    std::cout << "Input contains invalid characters." << std::endl;
-                    std::cout << "Use -h, --help for help." << std::endl;
-                    return 0;
-                }
-            }
-        }
-        else if ( (boost::equals(argv[i], "--proxy")) ||(boost::equals(argv[i], "-x")) )
-        {
-            if (i+1<argc) 
-            {
-                gotProxy = true;
-                websocket_proxy = argv[++i];
-
-                if (!isPrintable(websocket_proxy))
-                {
-                    std::cout << "Input contains invalid characters." << std::endl;
-                    std::cout << "Use -h, --help for help." << std::endl;
-                    return 0;
-                }
-            }
-        }
-        else if ( (boost::equals(argv[i], "--dns")) ||(boost::equals(argv[i], "-d")) )
-        {
-            if (i+1<argc) 
-            {
-                gotDns = true;
-                dns_suffix = argv[++i];
-
-                if (!isPrintable(dns_suffix))
-                {
-                    std::cout << "Input contains invalid characters." << std::endl;
-                    std::cout << "Use -h, --help for help." << std::endl;
-                    return 0;
-                }
-            }
-        }
-        else
-        {
-            std::cout << "Unrecognized command line arguments." << std::endl;
+            std::cout << "Incorrect or missing arguments." << std::endl;
             std::cout << "Use -h, --help for help." << std::endl;
-            return 0;
         }
-        
+        return 0;
     }
 
-    if (!gotURL || !gotProfile)
+    // get required arguments
+    if (!args_get_url(argc, argv, arg_url) || !args_get_cmd(argc, argv, arg_cmd))
     {
         std::cout << "Incorrect or missing arguments." << std::endl;
         std::cout << "Use -h, --help for help." << std::endl;
@@ -174,89 +111,101 @@ int main(int argc, char *argv[])
     }
 
     // Print version info
-    cout << PROJECT_NAME << " v" PROJECT_VER << endl;
+    usage_show_version();
 
     try {
         // Get activation info
-        activationInfo = createActivationRequest(server_profile, dns_suffix);
+        if (args_get_dns(argc, argv, arg_dns))
+        {
+            if (!act_create_request(arg_cmd, arg_dns, activation_info)) throw std::runtime_error("unable to get activation info");
+        }
+        else
+        {
+            if (!act_create_request(arg_cmd, "" , activation_info)) throw std::runtime_error("unable to get activation info");
+        }
     }
     catch (...)
     {
-        std::cerr << endl << "Unable to get activation info. Check AMT configuration." << endl;
+        std::cerr << std::endl << "Unable to get activation info. Try again later or check AMT configuration." << std::endl;
         return 1;
     }
 
     try
     {
-        // Check if LMS is available
-        SOCKET s = lmsConnect();
+        // check if LMS is available
+        SOCKET s = lms_connect();
         closesocket(s);
     }
     catch (...)
     {
-        std::cerr << endl << "Unable to connect to Local Management Service (LMS). Please ensure LMS is running." << endl;
-        return 1;
+        // start MicroLMS thread
+        std::thread main_micro_lms_thread(main_micro_lms);
+        main_micro_lms_thread.detach();
+
+        // wait for MicroLMS to startup
+        for (int i=0; i<5; i++) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
     }
 
-    // Show activation info
 #ifdef DEBUG
-    cout << "Activation info: " << endl << activationInfo << endl;
+    std::cout << "Activation info: " << std::endl << activation_info << std::endl;
 #endif
 
-    // WebSocket Interface
-    websocket_client_config client_config;
-    if (!websocket_proxy.empty())
+    // webSocket Interface
+    web::websockets::client::websocket_client_config client_config;
+    if (args_get_proxy(argc, argv, arg_proxy))
     {
-        client_config.set_proxy(web::web_proxy(utility::conversions::to_string_t(websocket_proxy)));
+        client_config.set_proxy(web::web_proxy(utility::conversions::to_string_t(arg_proxy)));
     }
 #ifdef DEBUG
     // skip certificate verification if debug build
-    cout << "!!! SKIPPING CERTIFICATE VERIFICATION !!!" << endl;
+    std::cout << "!!! SKIPPING CERTIFICATE VERIFICATION !!!" << std::endl;
     client_config.set_validate_certificates(false);
 #endif
-    websocket_callback_client client(client_config);
+    web::websockets::client::websocket_callback_client client(client_config);
     std::condition_variable cv;
     std::mutex mx;
     SOCKET s;
 
     // set receive handler
-    client.set_message_handler([&client, &mx, &cv, &s](websocket_incoming_message ret_msg) 
+    client.set_message_handler([&client, &mx, &cv, &s](web::websockets::client::websocket_incoming_message ret_msg)
     {
         // kick the timer
         std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
         auto duration = now.time_since_epoch();
-        timeoutTimer = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+        g_timeout_val = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
 
         try
         {
-            // handle message from server...
-            string rcv_websocket_msg = ret_msg.extract_string().get();
+            // handle message from server
+            std::string rcv_websocket_msg = ret_msg.extract_string().get();
 #ifdef DEBUG
-            cout << endl << "<<<<< Received Message " << endl;
-            cout << rcv_websocket_msg << endl;
+            std::cout << std::endl << "<<<<< Received Message " << std::endl;
+            std::cout << rcv_websocket_msg << std::endl;
 #endif
-            cout << "." << std::flush; // dot status output
+            std::cout << "." << std::flush; // dot status output
 
             // parse incoming JSON message
             utility::string_t tmp = utility::conversions::convertstring(rcv_websocket_msg);
             web::json::value parsed = web::json::value::parse(tmp);
 
             utility::string_t out = U("");
-            string msgMethod = "";
-            string msgApiKey = "";
-            string msgAppVersion = "";
-            string msgProtocolVersion = "";
-            string msgStatus = "";
-            string msgMessage = "";
-            string msgPayload = "";
-            string payloadDecoded = "";
+            std::string msgMethod = "";
+            std::string msgApiKey = "";
+            std::string msgAppVersion = "";
+            std::string msgProtocolVersion = "";
+            std::string msgStatus = "";
+            std::string msgMessage = "";
+            std::string msgPayload = "";
+            std::string payloadDecoded = "";
 
             if ( !parsed.has_field(U("method"))          || !parsed.has_field(U("apiKey")) || !parsed.has_field(U("appVersion"))  || 
                  !parsed.has_field(U("protocolVersion")) || !parsed.has_field(U("status")) || !parsed.has_field(U("message"))     ||
                  !parsed.has_field(U("payload"))  ) {
-                     std::cerr << endl << "Received incorrectly formatted message." << endl;
+                     std::cerr << std::endl << "Received incorrectly formatted message." << std::endl;
                      cv.notify_all();
-                     timeoutThreadAlive = false;
+                     g_thread_alive = false;
                      return;
             }
 
@@ -282,35 +231,35 @@ int main(int argc, char *argv[])
             }
             catch (...)
             {
-                std::cerr << endl << "Received message parse error." << endl;
+                std::cerr << std::endl << "Received message parse error." << std::endl;
                 return;
             }
 
 
 #ifdef DEBUG
-            cout << msgMethod << ", " << msgStatus << ", " << msgMessage << endl;
-            cout << rcv_websocket_msg << endl;
+            std::cout << msgMethod << ", " << msgStatus << ", " << msgMessage << std::endl;
+            std::cout << rcv_websocket_msg << std::endl;
 #endif
 
             // process any messages we can
             //   - if success, done
             //   - if error, get out
-            if (boost::iequals(msgMethod, "success"))
+            if (msgMethod.compare("success")==0)
             {
                 // cleanup
-                timeoutTimer = 0;
+                g_timeout_val = 0;
 
                 // exit
-                cout << endl << msgMessage << endl;
+                std::cout << std::endl << msgMessage << std::endl;
                 return;
             }
-            else if (boost::iequals(msgMethod, "error"))
+            else if (msgMethod.compare("error")==0)
             {
                 // cleanup
-                timeoutTimer = 0;
+                g_timeout_val = 0;
 
                 // exit
-                cout << endl << msgMessage << endl;
+                std::cout << std::endl << msgMessage << std::endl;
                 return;
             }
 
@@ -325,7 +274,7 @@ int main(int argc, char *argv[])
                     msgPayload = utility::conversions::to_utf8string(out);
                     
                     // decode payload
-                    payloadDecoded = decodeBase64(msgPayload);
+                    payloadDecoded = util_decode_base64(msgPayload);
                 }
                 else
                 {
@@ -335,24 +284,24 @@ int main(int argc, char *argv[])
             }
             catch (...)
             {
-                std::cerr << endl << "JSON format error. Unable to parse message." << endl;
+                std::cerr << std::endl << "JSON format error. Unable to parse message." << std::endl;
                 return;
             }
 
             try
             {
                 // conntect to lms
-                s = lmsConnect();
+                s = lms_connect();
             }
             catch (...)
             {
-                std::cerr << endl << "Unable to connect to Local Management Service (LMS). Please ensure LMS is running." << endl;
+                std::cerr << std::endl << "Unable to connect to Local Management Service (LMS). Please ensure LMS is running." << std::endl;
                 return;
             }
             
 #ifdef DEBUG
-        cout << endl << "vvvvv Sending Message " << endl;
-        cout << payloadDecoded << endl;        
+            std::cout << std::endl << "vvvvv Sending Message " << std::endl;
+            std::cout << payloadDecoded << std::endl;
 #endif        
 
             // send message to LMS
@@ -375,7 +324,7 @@ int main(int argc, char *argv[])
             // read until connection is closed by LMS
             while (1)
             {
-                string superBuffer = "";
+                std::string superBuffer = "";
                 while (1)
                 {
                     int res = select(fd, &rset, NULL, NULL, &timeout);
@@ -394,8 +343,8 @@ int main(int argc, char *argv[])
                     if (res > 0)
                     {
 #ifdef DEBUG
-                        cout << endl << "^^^^^ Received Message" << endl;
-                        cout << recv_buffer << endl;
+                        std::cout << std::endl << "^^^^^ Received Message" << std::endl;
+                        std::cout << recv_buffer << std::endl;
 #endif
                         superBuffer += recv_buffer;
                     }
@@ -406,9 +355,8 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        // case where res is zero bytes
-                        // discussion below, but select returns 1 with recv returning 0 to indicate close
-                        // https://stackoverflow.com/questions/2992547/waiting-for-data-via-select-not-working
+                        // case where res is zero bytes, select returns 1 
+                        // with recv returning 0 to indicate close
                         break;
                     }
                 } // while select()
@@ -416,14 +364,16 @@ int main(int argc, char *argv[])
                 // if there is some data send it
                 if (superBuffer.length() > 0) 
                 {
-                    string response = createResponse(superBuffer.c_str());
-                    websocket_outgoing_message send_websocket_msg;
-                    string send_websocket_buffer(response);
+                    std::string response;
+                    if (!act_create_response(superBuffer.c_str(), response)) return;
+
+                    web::websockets::client::websocket_outgoing_message send_websocket_msg;
+                    std::string send_websocket_buffer(response);
                     send_websocket_msg.set_utf8_message(send_websocket_buffer);
 #ifdef DEBUG
-                    cout << endl << ">>>>> Sending Message" << endl;
-                    cout << superBuffer << endl;
-                    cout << send_websocket_buffer << endl;
+                    std::cout << std::endl << ">>>>> Sending Message" << std::endl;
+                    std::cout << superBuffer << std::endl;
+                    std::cout << send_websocket_buffer << std::endl;
 #endif
                     client.send(send_websocket_msg).wait();
 
@@ -437,13 +387,13 @@ int main(int argc, char *argv[])
         }
         catch (...)
         {
-            std::cerr << endl << "Communication error in receive handler." << endl;
+            std::cerr << std::endl << "Communication error in receive handler." << std::endl;
             closesocket(s);
         }
     });
 
     // set close handler
-    client.set_close_handler([&mx,&cv](websocket_close_status status, const utility::string_t &reason, const std::error_code &code) 
+    client.set_close_handler([&mx,&cv](web::websockets::client::websocket_close_status status, const utility::string_t &reason, const std::error_code &code)
     {
         // websocket closed by server, notify main thread 
         cv.notify_all();
@@ -451,37 +401,37 @@ int main(int argc, char *argv[])
 
     try
     {
-        // Connect to web socket server; AMT activation server
-        client.connect(utility::conversions::to_string_t(websocket_address)).wait();
+        // connect to web socket server; AMT activation server
+        client.connect(utility::conversions::to_string_t(arg_url)).wait();
     }
     catch (...)
     {
-        std::cerr << "Unable to connect to websocket server. Please check url." << endl;
+        std::cerr << "Unable to connect to websocket server. Please check url." << std::endl;
         exit(1);
     }
 
     try 
     {
-        // Send activationParams to websocket
-        websocket_outgoing_message out_msg;
-        out_msg.set_utf8_message(activationInfo);
+        // send activationParams to websocket
+        web::websockets::client::websocket_outgoing_message out_msg;
+        out_msg.set_utf8_message(activation_info);
         
 #ifdef DEBUG
-        cout << endl << ">>>>> Sending Activiation Info" << endl;
-        cout << activationInfo << endl;
+        std::cout << std::endl << ">>>>> Sending Activiation Info" << std::endl;
+        std::cout << activation_info << std::endl;
 #endif        
         client.send(out_msg).wait();
     }
     catch (...)
     {
-        std::cerr << endl << "Unable to send message to websocket server." << endl;
+        std::cerr << std::endl << "Unable to send message to websocket server." << std::endl;
         exit(1);
     }
 
     std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
     auto duration = now.time_since_epoch();
-    timeoutTimer = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
-    std::thread timeoutThread(timeoutFunc, &cv, &mx);
+    g_timeout_val = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+    std::thread timeoutThread(timeout_thread_function, &cv, &mx);
 
     // wait for server to send success/failure command
     std::unique_lock<std::mutex> lock(mx);
@@ -502,32 +452,3 @@ int main(int argc, char *argv[])
     exit(0);
 }
 
-bool isPrintable(std::string str)
-{
-    for (char c : str)
-    {
-        if (!std::isprint(c))
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void showUsage()
-{
-    cout << "Usage: " << PROJECT_NAME << " --url <url> --profile <name> [--proxy <addr>]" << endl;
-    cout << "Required:" << endl;
-    cout << "  -u, --url <url>                 websocket server" << endl;
-    cout << "  -p, --profile <name>            server profile" << endl;
-    cout << "Optional:" << endl;
-    cout << "  -x, --proxy <addr>              proxy address and port" << endl;
-    cout << "  -d, --dns <dns>                 dns suffix" << endl;
-    cout << endl;
-    cout << "Examples:" << endl;
-    cout << "  " << PROJECT_NAME << " --url wss://localhost --profile profile1" << endl;
-    cout << "  " << PROJECT_NAME << " -u wss://localhost --profile profile1 --proxy http://proxy.com:1000" << endl;
-    cout << "  " << PROJECT_NAME << " -u wss://localhost -p profile1 -x http://proxy.com:1000" << endl;
-    cout << endl;
-}

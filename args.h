@@ -14,20 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef __COMMANDS_H__
-#define __COMMANDS_H__
+#ifndef __ARGS_H__
+#define __ARGS_H__
 
-#include <vector>
 #include <string>
 
-bool cmd_get_version(std::string& version);
-bool cmd_get_build_number(std::string& version);
-bool cmd_get_sku(std::string& version);
-bool cmd_get_uuid(std::vector<unsigned char>& uuid);
-bool cmd_get_local_system_account(std::string& username, std::string& password);
-bool cmd_get_control_mode(int& mode);
-bool cmd_get_dns_suffix(std::string& suffix);
-bool cmd_get_wired_mac_address(std::vector<unsigned char>& address);
-bool cmd_get_certificate_hashes(std::vector<std::string>& hashes);
+bool args_get_help(int argc, char* argv[]);
+bool args_get_version(int argc, char* argv[]);
+bool args_get_url(int argc, char* argv[], std::string& url);
+bool args_get_proxy(int argc, char* argv[], std::string& proxy);
+bool args_get_cmd(int argc, char* argv[], std::string& cmd);
+bool args_get_dns(int argc, char* argv[], std::string& dns);
+bool args_get_info(int argc, char* argv[], std::string& info);
 
 #endif

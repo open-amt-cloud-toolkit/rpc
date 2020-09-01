@@ -14,20 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef __COMMANDS_H__
-#define __COMMANDS_H__
+#ifndef __ACTIVATION_H__
+#define __ACTIVATION_H__
 
-#include <vector>
 #include <string>
 
-bool cmd_get_version(std::string& version);
-bool cmd_get_build_number(std::string& version);
-bool cmd_get_sku(std::string& version);
-bool cmd_get_uuid(std::vector<unsigned char>& uuid);
-bool cmd_get_local_system_account(std::string& username, std::string& password);
-bool cmd_get_control_mode(int& mode);
-bool cmd_get_dns_suffix(std::string& suffix);
-bool cmd_get_wired_mac_address(std::vector<unsigned char>& address);
-bool cmd_get_certificate_hashes(std::vector<std::string>& hashes);
+#define PROTOCOL_VERSION "3.0.0"
 
+#ifdef _WIN32
+#define convertstring   to_utf16string
+#else
+#define convertstring   to_utf8string
 #endif
+
+bool act_create_request(std::string commands, std::string dns_suffix, std::string& request);
+bool act_create_response(std::string payload, std::string& response);
+
+#endif 

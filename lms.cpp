@@ -26,7 +26,7 @@ limitations under the License.
 #include <netdb.h>
 #endif
 
-SOCKET lmsConnect()
+SOCKET lms_connect()
 {
     std::string lmsAddress = "localhost";
     std::string lmsPort = "16992";
