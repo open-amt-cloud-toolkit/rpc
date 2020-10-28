@@ -1,0 +1,82 @@
+name: Build RPC (Native)
+
+on:
+  workflow_dispatch:
+    
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-windows:
+    # See: https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#configuring-a-build-matrix
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v2
+    - name: Create Build Dir
+      run: mkdir build
+#     - name: Clone
+#       run: git clone --branch 2020.01 https://github.com/microsoft/vcpkg.git
+#     - name: Build VCPKG
+#       run: cd vcpkg && bootstrap-vcpkg.bat
+#     - name: Integrate with VS
+#       run:  cd vcpkg && vcpkg.exe integrate install
+    - name: Restore from cache and install vcpkg
+      # Download and build vcpkg, without installing any port. If content is cached already, it is a no-op.
+      uses: lukka/run-vcpkg@v4
+      id: runvcpkg
+      with:
+        vcpkgArguments: cpprestsdk
+        vcpkgTriplet: x64-windows-static 
+        vcpkgDirectory: '${{ runner.workspace }}\rpc\vcpkg'
+        vcpkgGitCommitId: 7aebb481085de7387f8a9975652c26f9053f66df
+    # Now that vcpkg is installed, it is being used to run desired arguments.
+#     - name: Install C++ REST SDK
+#       run:  vcpkg.exe install cpprestsdk:x64-windows-static
+#     - name: dir
+#       run: find $RUNNER_WORKSPACE
+#       shell: bash
+#     - name: Prints outputs of run-vcpkg task
+#       run: echo "'${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}' '${{  steps.runvcpkg.outputs.RUNVCPKG_VCPKG_TRIPLET_OUT }}' "
+    - name: Run CMake+Ninja with triplet (cmd)
+      uses: lukka/run-cmake@v3
+      id: runcmake_cmd
+      with:
+        cmakeListsOrSettingsJson: 'CMakeListsTxtBasic'
+        cmakeListsTxtPath: '${{ github.workspace }}\CMakeLists.txt'
+        useVcpkgToolchainFile: true
+        buildWithCMakeArgs: '-- -v'
+        vcpkgTriplet: ${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_TRIPLET_OUT }}
+        buildDirectory: '${{ runner.workspace }}\rpc\build\' 
+#     - name: Prepare for build
+#       run:  cd build && cmake .. -DVCPKG_TARGET_TRIPLET=x64-windows-static -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake
+#     - name: Build RPC
+#       run: cd build && cmake --build . --config Debug
+    - name: GitHub Upload Release Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: RPC_Windows.exe
+        path: ${{ runner.workspace }}\rpc\build\rpc.exe 
+
+  build-linux:
+    # See: https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#configuring-a-build-matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Dependencies
+      run: |
+        sudo apt install libboost-system-dev libboost-thread-dev libboost-random-dev libboost-regex-dev  libboost-filesystem-dev libssl-dev zlib1g-dev -y
+        mkdir build 
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=Debug ..
+        cmake --build .
+        
+    - name: GitHub Upload Release Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: RPC_Linux_${{ matrix.os }}
+        path: |
+            build/rpc
