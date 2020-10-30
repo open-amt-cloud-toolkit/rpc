@@ -4,8 +4,6 @@ The Default ("master") branch is our release branch that is for production use. 
 
 RPC is an application which enables remote capabilities for AMT, such as as device activation. To accomplish this, RPC communicates with the RPS (Remote Provisioning Server).
 
-As a prerequisite, a Local Management Service (LMS) must be installed and running on the operating system.
-
 ## Linux
 
 Steps below are for Ubuntu 18.04.

@@ -898,7 +898,7 @@ AMT_STATUS pthi_GetRemoteAccessConnectionStatus(REMOTE_ACCESS_STATUS *remoteAcce
 AMT_STATUS _verifyRemoteAccessConnectionStatus(const CFG_GET_REMOTE_ACCESS_CONNECTION_STATUS_RESPONSE *response)
 {
 	ULONG ByteCount = response->Header.Header.Length;
-	if (ByteCount != (sizeof(CFG_GET_REMOTE_ACCESS_CONNECTION_STATUS_RESPONSE) - sizeof(PTHI_MESSAGE_HEADER) - sizeof(CHAR *) + response->MpsHostname.Length)) return PTSDK_STATUS_INTERNAL_ERROR;
+	if (ByteCount < (sizeof(CFG_GET_REMOTE_ACCESS_CONNECTION_STATUS_RESPONSE) - sizeof(PTHI_MESSAGE_HEADER) - sizeof(CHAR*))) return PTSDK_STATUS_INTERNAL_ERROR;
 	return AMT_STATUS_SUCCESS;
 }
 
@@ -1347,7 +1347,7 @@ AMT_STATUS pthi_SetHostFQDN(char* str)
 	AMT_STATUS status;
 	UINT8 *readBuffer = NULL;
 	CFG_SET_HOST_FQDN_REQUEST command;
-	int len = (int)strnlen_s(str, _MAX_PATH);
+	int len = (int)strnlen_s(str, 256);
 	
 	memset(&command, 0, sizeof(CFG_SET_HOST_FQDN_REQUEST)); // Fix the valgrind warning
 	command.Header = SET_HOST_FQDN_HEADER;

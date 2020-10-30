@@ -2441,8 +2441,8 @@ ILibExportMethod void ILibStartChain(void *Chain)
 	//
 	// Free the pipe resources
 	//
-	fclose(((ILibBaseChain*)Chain)->TerminateReadPipe);
-	fclose(((ILibBaseChain*)Chain)->TerminateWritePipe);
+	if (((ILibBaseChain*)Chain)->TerminateReadPipe != NULL)  {fclose(((ILibBaseChain*)Chain)->TerminateReadPipe);}
+	if (((ILibBaseChain*)Chain)->TerminateWritePipe != NULL) {fclose(((ILibBaseChain*)Chain)->TerminateWritePipe);}
 	((ILibBaseChain*)Chain)->TerminateReadPipe=0;
 	((ILibBaseChain*)Chain)->TerminateWritePipe=0;
 #endif

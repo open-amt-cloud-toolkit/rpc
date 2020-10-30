@@ -21,6 +21,19 @@ bool get_arg_exists(int argc, char* argv[], const char* long_opt, const char* sh
     return false;
 }
 
+bool get_arg_exists(int argc, char* argv[], const char* opt)
+{
+    for (int i = 1; i < argc; i++)
+    {
+        if ((strcasecmp(argv[i], opt) == 0))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool get_arg_string(int argc, char* argv[], const char* long_opt, const char* short_opt, std::string& value)
 {
     value = "";
@@ -48,14 +61,41 @@ bool get_arg_string(int argc, char* argv[], const char* long_opt, const char* sh
     return false;
 }
 
+bool get_arg_string(int argc, char* argv[], const char* opt, std::string& value)
+{
+    value = "";
+
+    for (int i = 1; i < argc; i++)
+    {
+        if ((strcasecmp(argv[i], opt) == 0))
+        {
+            if (i + 1 < argc)
+            {
+                std::string tmp = argv[++i];
+
+                if (!util_is_printable(tmp))
+                {
+                    return false;
+                }
+
+                value = tmp;
+
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 bool args_get_help(int argc, char* argv[])
 {
-    return get_arg_exists(argc, argv, "--help", "-h");
+    return get_arg_exists(argc, argv, "--help");
 }
 
 bool args_get_version(int argc, char* argv[])
 {
-    return get_arg_exists(argc, argv, "--version", "-v");
+    return get_arg_exists(argc, argv, "--version");
 }
 
 bool args_get_url(int argc, char* argv[], std::string& url)
@@ -65,7 +105,7 @@ bool args_get_url(int argc, char* argv[], std::string& url)
 
 bool args_get_proxy(int argc, char* argv[], std::string& proxy)
 {
-    return get_arg_string(argc, argv, "--proxy", "-x", proxy);
+    return get_arg_string(argc, argv, "--proxy", "-p", proxy);
 }
 
 bool args_get_cmd(int argc, char* argv[], std::string& cmd)
@@ -80,5 +120,10 @@ bool args_get_dns(int argc, char* argv[], std::string& dns)
 
 bool args_get_info(int argc, char* argv[], std::string& info)
 {
-    return get_arg_string(argc, argv, "--info", "-i", info);
+    return get_arg_string(argc, argv, "--amtinfo", info);
+}
+
+bool args_get_verbose(int argc, char* argv[])
+{
+    return get_arg_exists(argc, argv, "--verbose", "-v");
 }

@@ -59,10 +59,11 @@ int main(int argc, char* argv[])
     std::string arg_cmd;
     std::string arg_dns;
     std::string arg_info;
+    bool arg_verbose = false;
 
     if (argc == 1)
     {
-        std::cout << "Use -h, --help for help." << std::endl;
+        std::cout << "Use --help for help." << std::endl;
         return 0;
     }
 
@@ -80,14 +81,24 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    // Check if running in elevated privileges
+    if (!cmd_is_admin())
+    {
+        std::cout << "Unable to launch application. Please ensure that Intel ME is present, the MEI driver is installed and that this application is run with administrator or root privileges." << std::endl;
+        return 0;
+    }
+
     // check for info
     if (args_get_info(argc, argv, arg_info))
     {
-        if (!info_get(arg_info))
+        if (!info_get_verify(arg_info))
         {
             std::cout << "Incorrect or missing arguments." << std::endl;
-            std::cout << "Use -h, --help for help." << std::endl;
+            std::cout << "Use --help for help." << std::endl;
+            return 0;
         }
+
+        info_get(arg_info);
         return 0;
     }
 
@@ -95,8 +106,14 @@ int main(int argc, char* argv[])
     if (!args_get_url(argc, argv, arg_url) || !args_get_cmd(argc, argv, arg_cmd))
     {
         std::cout << "Incorrect or missing arguments." << std::endl;
-        std::cout << "Use -h, --help for help." << std::endl;
+        std::cout << "Use --help for help." << std::endl;
         return 0;
+    }
+
+    // verbose output
+    if (args_get_verbose(argc, argv))
+    {
+        arg_verbose = true;
     }
 
     // Print version info
@@ -122,8 +139,8 @@ int main(int argc, char* argv[])
     try
     {
         // check if LMS is available
-        SOCKET s = lms_connect();
-        closesocket(s);
+        SOCKET lms_socket = lms_connect();
+        closesocket(lms_socket);
     }
     catch (...)
     {
@@ -137,10 +154,6 @@ int main(int argc, char* argv[])
         }
     }
 
-#ifdef DEBUG
-    std::cout << "Activation info: " << std::endl << activation_info << std::endl;
-#endif
-
     // webSocket Interface
     web::websockets::client::websocket_client_config client_config;
     if (args_get_proxy(argc, argv, arg_proxy))
@@ -149,16 +162,17 @@ int main(int argc, char* argv[])
     }
 #ifdef DEBUG
     // skip certificate verification if debug build
-    std::cout << "!!! SKIPPING CERTIFICATE VERIFICATION !!!" << std::endl;
+    std::cout << "Skipping certificate verification." << std::endl;
     client_config.set_validate_certificates(false);
 #endif
     web::websockets::client::websocket_callback_client client(client_config);
     std::condition_variable cv;
     std::mutex mx;
-    SOCKET s;
+    SOCKET lms_socket;
+    memset(&lms_socket, 0, sizeof(SOCKET));
 
     // set receive handler
-    client.set_message_handler([&client, &mx, &cv, &s](web::websockets::client::websocket_incoming_message ret_msg)
+    client.set_message_handler([&client, &mx, &cv, &lms_socket, arg_verbose](web::websockets::client::websocket_incoming_message ret_msg)
     {
         // kick the timer
         std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
@@ -169,10 +183,6 @@ int main(int argc, char* argv[])
         {
             // handle message from server
             std::string rcv_websocket_msg = ret_msg.extract_string().get();
-#ifdef DEBUG
-            std::cout << std::endl << "<<<<< Received Message " << std::endl;
-            std::cout << rcv_websocket_msg << std::endl;
-#endif
             std::cout << "." << std::flush; // dot status output
 
             // parse incoming JSON message
@@ -224,12 +234,6 @@ int main(int argc, char* argv[])
                 return;
             }
 
-
-#ifdef DEBUG
-            std::cout << msgMethod << ", " << msgStatus << ", " << msgMessage << std::endl;
-            std::cout << rcv_websocket_msg << std::endl;
-#endif
-
             // process any messages we can
             //   - if success, done
             //   - if error, get out
@@ -280,7 +284,7 @@ int main(int argc, char* argv[])
             try
             {
                 // conntect to lms
-                s = lms_connect();
+                lms_socket = lms_connect();
             }
             catch (...)
             {
@@ -288,22 +292,23 @@ int main(int argc, char* argv[])
                 return;
             }
             
-#ifdef DEBUG
-            std::cout << std::endl << "vvvvv Sending Message " << std::endl;
-            std::cout << payloadDecoded << std::endl;
-#endif        
+            if (arg_verbose)
+            {
+                std::cout << std::endl << "vvv -- message to AMT -- vvv" << std::endl;
+                std::cout << payloadDecoded << std::endl;
+            } 
 
             // send message to LMS
-            if (send(s, payloadDecoded.c_str(), (int)payloadDecoded.length(), 0) < 0)
+            if (send(lms_socket, payloadDecoded.c_str(), (int)payloadDecoded.length(), 0) < 0)
             {
                 throw std::runtime_error("error: socket send");
             }
 
             // handle response message from LMS
-            int fd = ((int) s) + 1;
+            int fd = ((int)lms_socket) + 1;
             fd_set rset;
             FD_ZERO(&rset);
-            FD_SET(s, &rset);
+            FD_SET(lms_socket, &rset);
 
             timeval timeout;
             memset(&timeout, 0, sizeof(timeval));
@@ -328,13 +333,9 @@ int main(int argc, char* argv[])
                     // read from LMS
                     char recv_buffer[4096];
                     memset(recv_buffer, 0, 4096);
-                    res = recv(s, recv_buffer, 4096, 0);
+                    res = recv(lms_socket, recv_buffer, 4096, 0);
                     if (res > 0)
                     {
-#ifdef DEBUG
-                        std::cout << std::endl << "^^^^^ Received Message" << std::endl;
-                        std::cout << recv_buffer << std::endl;
-#endif
                         superBuffer += recv_buffer;
                     }
                     else if (res < 0)
@@ -353,31 +354,32 @@ int main(int argc, char* argv[])
                 // if there is some data send it
                 if (superBuffer.length() > 0) 
                 {
+                    if (arg_verbose)
+                    {
+                        std::cout << std::endl << "^^^ -- message from AMT -- ^^^" << std::endl;
+                        std::cout << superBuffer << std::endl;
+                    }
+
                     std::string response;
                     if (!act_create_response(superBuffer.c_str(), response)) return;
 
                     web::websockets::client::websocket_outgoing_message send_websocket_msg;
                     std::string send_websocket_buffer(response);
                     send_websocket_msg.set_utf8_message(send_websocket_buffer);
-#ifdef DEBUG
-                    std::cout << std::endl << ">>>>> Sending Message" << std::endl;
-                    std::cout << superBuffer << std::endl;
-                    std::cout << send_websocket_buffer << std::endl;
-#endif
                     client.send(send_websocket_msg).wait();
 
                     // done
-                    closesocket(s);
+                    closesocket(lms_socket);
                     return;
                 }
             }
 
-            closesocket(s);
+            closesocket(lms_socket);
         }
         catch (...)
         {
             std::cerr << std::endl << "Communication error in receive handler." << std::endl;
-            closesocket(s);
+            closesocket(lms_socket);
         }
     });
 
@@ -403,12 +405,7 @@ int main(int argc, char* argv[])
     {
         // send activationParams to websocket
         web::websockets::client::websocket_outgoing_message out_msg;
-        out_msg.set_utf8_message(activation_info);
-        
-#ifdef DEBUG
-        std::cout << std::endl << ">>>>> Sending Activiation Info" << std::endl;
-        std::cout << activation_info << std::endl;
-#endif        
+        out_msg.set_utf8_message(activation_info);        
         client.send(out_msg).wait();
     }
     catch (...)
@@ -433,10 +430,8 @@ int main(int argc, char* argv[])
     client.close().wait();
 
     // clean-up socket
-    if (s) {
-        shutdown(s, SD_BOTH);
-        closesocket(s);
-    }
+    shutdown(lms_socket, SD_BOTH);
+    closesocket(lms_socket);
 
     exit(0);
 }

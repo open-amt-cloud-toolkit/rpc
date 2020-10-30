@@ -58,11 +58,14 @@ find_package(Boost COMPONENTS system REQUIRED)
 # Find OpenSSL
 find_package(OpenSSL)
 
+# Find ZLIB
+find_package(ZLIB)
+
 # Download and build CppRestSDK, If GIT_TAG is changed then need to delete cpprestsdk-prefix because UPDATE_COMMAND is set to ""
 include(ExternalProject)
 ExternalProject_Add(cpprestsdk
   GIT_REPOSITORY    https://github.com/Microsoft/cpprestsdk.git 
-  GIT_TAG           v2.10.14
+  GIT_TAG           v2.10.16
   CMAKE_ARGS        -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=0 -DBUILD_SAMPLES=OFF -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=<SOURCE_DIR>/../../install
   TEST_COMMAND      ""
   UPDATE_COMMAND    ""
@@ -72,7 +75,7 @@ set(CPPRESTSDK_LIBARIES ${SOURCE_DIR}/../../install/lib/)
 set(CPPRESTSDK_INCLUDE_DIR ${SOURCE_DIR}/../../install/include/)
 
 add_library(cpprest INTERFACE)
-target_link_libraries(cpprest INTERFACE ${CPPRESTSDK_LIBARIES}/libcpprest.a  OpenSSL::SSL OpenSSL::Crypto ${Boost_LIBRARIES} Threads::Threads)
+target_link_libraries(cpprest INTERFACE ${CPPRESTSDK_LIBARIES}/libcpprest.a  OpenSSL::SSL OpenSSL::Crypto ${Boost_LIBRARIES} Threads::Threads ZLIB::ZLIB)
 target_include_directories(cpprest INTERFACE ${CPPRESTSDK_INCLUDE_DIR})
 
 else (UNIX)

@@ -17,15 +17,15 @@
 bool get_certificate_hashes(web::json::value& hashes)
 {
     std::vector<web::json::value> hashValues;
-    std::vector<std::string> certHashes;
+    std::vector<cert_hash_entry> certHashes;
     if (!cmd_get_certificate_hashes(certHashes))
     {
         return false;
     }
 
-    for (std::string hashString : certHashes)
+    for (cert_hash_entry hashString : certHashes)
     {
-        hashValues.push_back(web::json::value::string(utility::conversions::convertstring(hashString)));
+        hashValues.push_back(web::json::value::string(utility::conversions::convertstring(hashString.hash)));
     }
 
     hashes = web::json::value::array(hashValues);
@@ -268,10 +268,6 @@ bool act_create_request(std::string commands, std::string dns_suffix, std::strin
     std::string encodedPayload = util_encode_base64(serializedPayload);
     utility::string_t payload = utility::conversions::to_string_t(encodedPayload);
     msg[U("payload")] = web::json::value::string(payload);
-
-#ifdef DEBUG
-    std::cout << "Activation info payload:" << serializedPayload << std::endl;
-#endif
 
     // serialize the entire message
     request = utility::conversions::to_utf8string(msg.serialize());

@@ -6,6 +6,7 @@
 #include "commands.h"
 #include <string>
 #include "port.h"
+#include "utils.h"
 
 #ifndef _WIN32
 #include <string.h>
@@ -21,6 +22,13 @@ extern "C" {
 #endif
 }
 #include "version.h"
+
+bool cmd_is_admin()
+{
+    if (heci_Init(NULL, PTHI_CLIENT) == 0) return false;
+
+    return true;
+}
 
 bool cmd_get_version(std::string& version)
 {
@@ -184,8 +192,12 @@ bool cmd_get_dns_suffix(std::string& suffix)
 
     if (amt_status == 0)
     {
-        std::string tmp(amt_dns_suffix.Buffer, amt_dns_suffix.Length);
-        suffix = tmp;
+        if (amt_dns_suffix.Buffer != NULL)
+        {
+            std::string tmp(amt_dns_suffix.Buffer, amt_dns_suffix.Length);
+            suffix = tmp;
+            free(amt_dns_suffix.Buffer);
+        }
 
         return true;
     }
@@ -222,9 +234,9 @@ bool cmd_get_wired_mac_address(std::vector<unsigned char>& address)
     return false;
 }
 
-bool cmd_get_certificate_hashes(std::vector<std::string>& hashes)
+bool cmd_get_certificate_hashes(std::vector<cert_hash_entry>& hash_entries)
 {
-    hashes.clear();
+    hash_entries.clear();
 
     // initialize HECI interface
     if (heci_Init(NULL, PTHI_CLIENT) == 0) return false;
@@ -242,28 +254,38 @@ bool cmd_get_certificate_hashes(std::vector<std::string>& hashes)
             AMT_STATUS status = pthi_GetCertificateHashEntry(amt_hash_handles.Handles[i], &certhash_entry);
 
             int hashSize;
+            cert_hash_entry tmp;
             switch (certhash_entry.HashAlgorithm) {
             case 0: // MD5
                 hashSize = 16;
+                tmp.algorithm = "MD5";
                 break;
             case 1: // SHA1
                 hashSize = 20;
+                tmp.algorithm = "SHA1";
                 break;
             case 2: // SHA256
                 hashSize = 32;
+                tmp.algorithm = "SHA256";
                 break;
             case 3: // SHA512
                 hashSize = 64;
+                tmp.algorithm = "SHA512";
                 break;
             default:
-                hashSize = 64;
+                hashSize = 0;
+                tmp.algorithm = "UNKNOWN";
                 break;
             }
 
             if (certhash_entry.IsActive == 1) 
             {
+                std::string cert_name(certhash_entry.Name.Buffer, certhash_entry.Name.Length);
+                tmp.name = cert_name;
+                tmp.is_default = certhash_entry.IsDefault;
+                tmp.is_active = certhash_entry.IsActive;
+
                 std::string hashString;
-                hashString.clear();
                 for (int i = 0; i < hashSize; i++)
                 {
                     char hex[10];
@@ -271,9 +293,85 @@ bool cmd_get_certificate_hashes(std::vector<std::string>& hashes)
                     hashString += hex;
                 }
 
-                hashes.push_back(hashString);
+                tmp.hash = hashString;
+
+                hash_entries.push_back(tmp);
             }
         }
+
+        return true;
+    }
+
+    return false;
+}
+
+bool cmd_get_remote_access_connection_status(int& network_status, int& remote_status, int& remote_trigger, std::string& mps_hostname)
+{
+    network_status = 0;
+    remote_status = 0;
+    remote_trigger = 0;
+    mps_hostname = "";
+    const int MPS_SERVER_MAXLENGTH = 256;
+
+    // initialize HECI interface
+    if (heci_Init(NULL, PTHI_CLIENT) == 0) return false;
+
+    // get DNS according to AMT
+    REMOTE_ACCESS_STATUS remote_access_connection_status;
+    AMT_STATUS amt_status = pthi_GetRemoteAccessConnectionStatus(&remote_access_connection_status);
+
+    if (amt_status == 0)
+    {
+        network_status = remote_access_connection_status.AmtNetworkConnectionStatus;
+        remote_status  = remote_access_connection_status.RemoteAccessConnectionStatus;
+        remote_trigger = remote_access_connection_status.RemoteAccessConnectionTrigger;
+
+        if (remote_access_connection_status.MpsHostname.Buffer != NULL)
+        {
+            if (remote_access_connection_status.MpsHostname.Length < MPS_SERVER_MAXLENGTH)
+            {
+                std::string tmp(remote_access_connection_status.MpsHostname.Buffer, remote_access_connection_status.MpsHostname.Length);
+                if (util_is_printable(tmp))
+                {
+                    mps_hostname = tmp;
+                }
+            }
+
+            free(remote_access_connection_status.MpsHostname.Buffer);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+bool cmd_get_lan_interface_settings(lan_interface_settings& lan_interface_settings)
+{
+    // initialize HECI interface
+    if (heci_Init(NULL, PTHI_CLIENT) == 0) return false;
+
+    // get wired interface
+    LAN_SETTINGS lan_settings;
+    UINT32 interface_settings = 0; // wired=0, wireless=1
+    AMT_STATUS amt_status = pthi_GetLanInterfaceSettings(interface_settings, &lan_settings);
+    if (amt_status == 0)
+    {
+        lan_interface_settings.is_enabled   = lan_settings.Enabled;
+        lan_interface_settings.dhcp_mode    = lan_settings.DhcpIpMode;
+        lan_interface_settings.dhcp_enabled = lan_settings.DhcpEnabled;
+
+        lan_interface_settings.ip_address.push_back((lan_settings.Ipv4Address >> 24) & 0xff);
+        lan_interface_settings.ip_address.push_back((lan_settings.Ipv4Address >> 16) & 0xff);
+        lan_interface_settings.ip_address.push_back((lan_settings.Ipv4Address >> 8) & 0xff);
+        lan_interface_settings.ip_address.push_back((lan_settings.Ipv4Address) & 0xff);
+
+        lan_interface_settings.mac_address.push_back(lan_settings.MacAddress[0]);
+        lan_interface_settings.mac_address.push_back(lan_settings.MacAddress[1]);
+        lan_interface_settings.mac_address.push_back(lan_settings.MacAddress[2]);
+        lan_interface_settings.mac_address.push_back(lan_settings.MacAddress[3]);
+        lan_interface_settings.mac_address.push_back(lan_settings.MacAddress[4]);
+        lan_interface_settings.mac_address.push_back(lan_settings.MacAddress[5]);
 
         return true;
     }
