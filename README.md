@@ -10,7 +10,7 @@ We leverage GitHub Actions as a means to build RPC automatically leveraging Gith
 
 ## Build the Remote Provisioning Client (RPC)
 
-![RPC_ForkandBuild_usingGithubActions]("assets/animations/forkandbuild.gif")
+![RPC_ForkandBuild_usingGithubActions](assets/animations/forkandbuild.gif)
 
 1. Create a fork of the repository [here](https://github.com/open-amt-cloud-toolkit/rpc/fork).
 
