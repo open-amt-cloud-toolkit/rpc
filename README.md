@@ -10,13 +10,15 @@ We leverage GitHub Actions as a means to build RPC automatically leveraging Gith
 
 ## Build the Remote Provisioning Client (RPC)
 
-![RPC_ForkandBuild_usingGithubActions](assets/animations/forkandbuild.gif)
+<p align="center">
+<img src="assets/animations/forkandbuild.gif" width="650"  />
+</p>
 
-1. Create a fork of the repository [here](https://github.com/open-amt-cloud-toolkit/rpc/fork).
+1. Create a fork of the rpc repository [here](https://github.com/open-amt-cloud-toolkit/rpc/fork) or via the Fork button in the top-right corner of the rpc repository.
 
-2. Click on "Actions" and Select "Build RPC (Native)" Workflow
+2. Click on "Actions" and Select "Build RPC (Native)" Workflow.
 
-3. Click "Run Workflow", select branch "master", and click "Run Workflow"
+3. Click "Run Workflow", select branch "master", and click "Run Workflow".
 
 4. Grab a coffee. The build for Windows will take approximately 30 minutes and the build for Linux will take approximately 5 minutes.
 
