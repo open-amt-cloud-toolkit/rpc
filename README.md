@@ -1,85 +1,25 @@
-The Default ("master") branch is our release branch that is for production use. All other branches are pre-production and should not be used for production deployments.
+# Remote Provisioning Client
 
-# Remote Provisioning Client (RPC)
+The Remote Provisioning Client (RPC) is an application that enables remote capabilities for Intel® AMT, such as as device activation and configuration. To accomplish this, RPC communicates with the Remote Provisioning Server (RPS) to activate and connect the edge device.
 
-RPC is an application which enables remote capabilities for AMT, such as as device activation. To accomplish this, RPC communicates with the RPS (Remote Provisioning Server).
+**For detailed documentation** about RPC or other features of the Open AMT Cloud Toolkit, see the [docs](https://open-amt-cloud-toolkit.github.io/mps/).
 
-## Linux
+## Prerequisites
 
-Steps below are for Ubuntu 18.04.
+We leverage GitHub Actions as a means to build RPC automatically leveraging Github's CI/CD Infrastructure. This avoids having to deal with the challenges of getting your build environment just right on your local machine and allows you to get up and running much faster. Read more about GitHub Actions [here](https://github.blog/2019-08-08-github-actions-now-supports-ci-cd/#:~:text=GitHub%20Actions%20is%20an%20API,every%20step%20along%20the%20way.)
 
-### Dependencies
-```
-sudo apt install git cmake build-essential libboost-system-dev  libboost-thread-dev libboost-random-dev libboost-regex-dev libboost-filesystem-dev libssl-dev zlib1g-dev
-```
+## Build the Remote Provisioning Client (RPC)
 
-### Build
+![RPC_ForkandBuild_usingGithubActions]("assets/animations/forkandbuild.gif")
 
-```
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build .
-```
+1. Create a fork of the repository [here](https://github.com/open-amt-cloud-toolkit/rpc/fork).
 
-To build debug:
-```
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-```
+2. Click on "Actions" and Select "Build RPC (Native)" Workflow
 
-### Run
+3. Click "Run Workflow", select branch "master", and click "Run Workflow"
 
-```
-sudo ./rpc --url wss://localhost:8080 --cmd "-t activate --profile profile1"
-```
+4. Grab a coffee. The build for Windows will take approximately 30 minutes and the build for Linux will take approximately 5 minutes.
 
-Use --help for more options.
+5. Once complete, click the completed job, and download the appropriate RPC for your OS under the "Artifacts" section.
 
-## Windows
-
-Steps below are for Windows 10 and Visual Studio 2019 Professional.
-
-### Build VCPKG
-
-Open an x64 native command prompt for Visual Studio 2019 as Administrator.
-
-```
-git clone --branch 2020.01 https://github.com/microsoft/vcpkg.git
-cd vcpkg
-bootstrap-vcpkg.bat
-vcpkg integrate install
-```
-
-### Build C++ REST SDK
-
-Open an x64 native tools command prompt for Visual Studio 2019.
-```
-cd vcpkg
-vcpkg install cpprestsdk:x64-windows-static
-```
-
-### Build
-
-Open an x64 native tools command prompt for Visual Studio 2019.
-```
-mkdir build
-cd build
-cmake .. -DVCPKG_TARGET_TRIPLET=x64-windows-static -DCMAKE_TOOLCHAIN_FILE=/vcpkg/scripts/buildsystems/vcpkg.cmake
-cmake --build . --config Release
-```
-
-To build debug:
-```
-cmake --build . --config Debug
-```
-
-### Run
-
-Open a command prompt as Administrator.
-
-```
-cd build\Release
-rpc.exe --url wss://localhost:8080 --cmd "-t activate --profile profile1"
-```
-
-Use --help for more options.
+For detailed documentation about RPC and using it to activate a device, see the [docs](https://open-amt-cloud-toolkit.github.io/mps/)
