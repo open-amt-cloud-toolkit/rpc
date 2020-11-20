@@ -27,7 +27,7 @@ if (UNIX)
 
   #Secure library usage and secure compile flags
   add_definitions (-fstack-protector-strong -D_FORTIFY_SOURCE=2 -O2 -Wformat -Wformat-security)
-  add_definitions (-fno-strict-overflow -fno-delete-null-pointer-checks -fwrapv)
+  add_definitions (-fno-strict-overflow -fno-delete-null-pointer-checks -fwrapv -fpermissive)
 else (UNIX)
   add_definitions (/GS /sdl)
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NXCompat /DynamicBase")
@@ -39,21 +39,10 @@ else (UNIX)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
 endif (UNIX)
 
-
-# Download and unpack lms at configure time
-configure_file(lms.cmake.in
-               lms-download/CMakeLists.txt)
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/lms-download )
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/lms-download )
-
-# Add  MEIClient directly to our build. This adds
-# the following targets: LmsMEIClient and LIBMETEE
-add_subdirectory(${CMAKE_BINARY_DIR}/lms-src/MEIClient
-                 ${CMAKE_BINARY_DIR}/lms-build/MEIClient)
-add_dependencies(LmsMEIClient libmetee)
-
+# Add  MicroLMS directly to our build. This adds
+# the following targets: MicroLMS
+add_subdirectory(MicroLMS)
+#add_dependencies(rpc MicroLMS)
 
 if (UNIX)
 
@@ -63,16 +52,20 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 
 # Find Boost
+set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost COMPONENTS system REQUIRED)
 
 # Find OpenSSL
 find_package(OpenSSL)
 
+# Find ZLIB
+find_package(ZLIB)
+
 # Download and build CppRestSDK, If GIT_TAG is changed then need to delete cpprestsdk-prefix because UPDATE_COMMAND is set to ""
 include(ExternalProject)
 ExternalProject_Add(cpprestsdk
   GIT_REPOSITORY    https://github.com/Microsoft/cpprestsdk.git 
-  GIT_TAG           v2.10.14
+  GIT_TAG           v2.10.16
   CMAKE_ARGS        -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=0 -DBUILD_SAMPLES=OFF -DBUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=<SOURCE_DIR>/../../install
   TEST_COMMAND      ""
   UPDATE_COMMAND    ""
@@ -82,7 +75,7 @@ set(CPPRESTSDK_LIBARIES ${SOURCE_DIR}/../../install/lib/)
 set(CPPRESTSDK_INCLUDE_DIR ${SOURCE_DIR}/../../install/include/)
 
 add_library(cpprest INTERFACE)
-target_link_libraries(cpprest INTERFACE ${CPPRESTSDK_LIBARIES}/libcpprest.a  OpenSSL::SSL OpenSSL::Crypto ${Boost_LIBRARIES} Threads::Threads)
+target_link_libraries(cpprest INTERFACE ${CPPRESTSDK_LIBARIES}/libcpprest.a  OpenSSL::SSL OpenSSL::Crypto ${Boost_LIBRARIES} Threads::Threads ZLIB::ZLIB)
 target_include_directories(cpprest INTERFACE ${CPPRESTSDK_INCLUDE_DIR})
 
 else (UNIX)
@@ -94,17 +87,28 @@ endif (UNIX)
 
 # ccu-poc
 add_executable (rpc
-  AMTHIClient/Include/GetControlModeCommand.h
-  AMTHIClient/Src/GetControlModeCommand.cpp
+  info.h
+  info.cpp
+  args.h
+  args.cpp
+  usage.h
+  usage.cpp
+  port.h
+  utils.h
+  utils.cpp
+  network.h
+  network.cpp
   commands.h
   commands.cpp
+  activation.h
+  activation.cpp
   lms.h
   lms.cpp
   main.cpp
 )
 
 target_include_directories(rpc PUBLIC
-  "AMTHIClient/Include/"
+  "MicroLMS/heci"
 )
 
 if (UNIX)
@@ -112,20 +116,33 @@ if (UNIX)
 add_dependencies(rpc cpprestsdk)
 
 target_link_libraries (rpc PRIVATE 
-  LmsMEIClient
+  MicroLMS
   cpprest
 )
 
 else (UNIX)
 
+add_dependencies(rpc MicroLMS )
+
 target_link_libraries (rpc PRIVATE 
-  LmsMEIClient
+  MicroLMS
   iphlpapi
   cpprestsdk::cpprest
   cpprestsdk::cpprestsdk_zlib_internal
   cpprestsdk::cpprestsdk_boost_internal
   cpprestsdk::cpprestsdk_brotli_internal
   ${Boost_LIBRARIES}
+  DbgHelp.lib
+    Iphlpapi.lib
+    Setupapi.lib
+    ws2_32.lib
+    Psapi.lib
+    Crypt32.lib
+    Wintrust.lib
+    Version.lib
+    Wtsapi32.lib
+    Gdiplus.lib
+    Userenv.lib
 )
 
 endif (UNIX)

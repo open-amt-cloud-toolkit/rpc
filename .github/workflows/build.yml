@@ -1,0 +1,69 @@
+#*********************************************************************
+# Copyright (c) Intel Corporation 2020
+# SPDX-License-Identifier: Apache-2.0
+#*********************************************************************/
+
+name: Build RPC (Native)
+
+on:
+  workflow_dispatch:
+   
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-windows:
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v2
+    - name: Create Build Dir
+      run: mkdir build
+    - name: Clone
+      run: git clone --branch 2020.01 https://github.com/microsoft/vcpkg.git
+    - name: Build VCPKG
+      run: cd vcpkg && bootstrap-vcpkg.bat
+      shell: cmd
+    - name: dir
+      run: ls
+    - name: dir
+      run: cd vcpkg && ls
+    - name: Integrate with VS
+      run:  ${{ runner.workspace }}\rpc\vcpkg\vcpkg.exe integrate install
+      shell: cmd
+    - name: Install C++ REST SDK
+      run:  ${{ runner.workspace }}\rpc\vcpkg\vcpkg.exe install cpprestsdk:x64-windows-static
+      shell: cmd
+    - name: dir
+      run: ls && cd vcpkg && ls
+      shell: bash
+    - name: Prepare for build
+      run:  cd build && cmake .. -DCMAKE_PREFIX_PATH=D:/a/rpc/rpc/vcpkg/installed/x64-windows-static -DVCPKG_TARGET_TRIPLET=x64-windows-static -DCMAKE_TOOLCHAIN_FILE=D:/a/rpc/rpc/vcpkg/scripts/buildsystems/vcpkg.cmake
+    - name: Build RPC
+      run: cd build && cmake --build . --config Debug
+    - name: GitHub Upload Release Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: RPC_Windows.exe
+        path: ${{ runner.workspace }}\rpc\build\Debug\rpc.exe 
+
+  build-linux:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, ubuntu-20.04]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Dependencies
+      run: |
+        sudo apt install libboost-system-dev libboost-thread-dev libboost-random-dev libboost-regex-dev  libboost-filesystem-dev libssl-dev zlib1g-dev -y
+        mkdir build 
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=Debug ..
+        cmake --build .
+        
+    - name: GitHub Upload Release Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: RPC_Linux_${{ matrix.os }}
+        path: |
+            build/rpc

@@ -1,48 +1,44 @@
-/*
-Copyright 2019 Intel Corporation
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+/*********************************************************************
+* Copyright (c) Intel Corporation 2019 - 2020
+* SPDX-License-Identifier: Apache-2.0
+**********************************************************************/
 
 #ifndef __COMMANDS_H__
 #define __COMMANDS_H__
 
-#include <iostream>
+#include <vector>
 #include <string>
 
-#include <cpprest/ws_client.h>
-#include <cpprest/json.h>
-#include <cpprest/streams.h>
+struct cert_hash_entry
+{
+    std::string hash;
+    std::string name;
+    std::string algorithm;
+    bool is_active;
+    bool is_default;
+};
 
-using namespace std;
-using namespace web::websockets::client;
-using namespace web;
+struct lan_interface_settings
+{
+    bool is_enabled;
+    bool link_status;
+    bool dhcp_enabled;
+    int  dhcp_mode;
+    std::vector<unsigned char> ip_address;
+    std::vector<unsigned char> mac_address;
+};
 
-#define PROTOCOL_VERSION "2.0.0"
-
-#ifdef _WIN32
-#define convertstring   to_utf16string
-#else
-#define convertstring   to_utf8string
-#endif
-
-string getDNSInfo();
-string createActivationRequest(string profile, string dnssuffixcmd);
-json::value getCertificateHashes();
-string createResponse(string payload);
-string getActivateInfo(string profile, string dnssuffixcmd);
-string encodeBase64(string str);
-string decodeBase64(string str);
-void dumpMessage(string tmp);
+bool cmd_is_admin();
+bool cmd_get_version(std::string& version);
+bool cmd_get_build_number(std::string& version);
+bool cmd_get_sku(std::string& version);
+bool cmd_get_uuid(std::vector<unsigned char>& uuid);
+bool cmd_get_local_system_account(std::string& username, std::string& password);
+bool cmd_get_control_mode(int& mode);
+bool cmd_get_dns_suffix(std::string& suffix);
+bool cmd_get_wired_mac_address(std::vector<unsigned char>& address);
+bool cmd_get_certificate_hashes(std::vector<cert_hash_entry>& hash_entries);
+bool cmd_get_remote_access_connection_status(int& network_status, int& remote_status, int& remote_trigger, std::string& mps_hostname);
+bool cmd_get_lan_interface_settings(lan_interface_settings& lan_interface_settings);
 
 #endif
