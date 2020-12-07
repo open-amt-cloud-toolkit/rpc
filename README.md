@@ -2,7 +2,7 @@
 
 The Remote Provisioning Client (RPC) is an application that enables remote capabilities for Intel® AMT, such as as device activation and configuration. To accomplish this, RPC communicates with the Remote Provisioning Server (RPS) to activate and connect the edge device.
 
-**For detailed documentation** about RPC or other features of the Open AMT Cloud Toolkit, see the [docs](https://open-amt-cloud-toolkit.github.io/mps/).
+**For detailed documentation** about RPC or other features of the Open AMT Cloud Toolkit, see the [docs](https://open-amt-cloud-toolkit.github.io/docs/).
 
 ## Prerequisites
 
@@ -24,4 +24,4 @@ We leverage GitHub Actions as a means to build RPC automatically leveraging Gith
 
 5. Once complete, click the completed job, and download the appropriate RPC for your OS under the "Artifacts" section.
 
-For detailed documentation about RPC and using it to activate a device, see the [docs](https://open-amt-cloud-toolkit.github.io/mps/)
+For detailed documentation about RPC and using it to activate a device, see the [docs](https://open-amt-cloud-toolkit.github.io/docs/)
