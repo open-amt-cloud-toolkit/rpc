@@ -179,6 +179,36 @@ bool cmd_get_control_mode(int& mode)
     return false;
 }
 
+bool cmd_get_fqdn(fqdn_settings& fqdn_settings)
+{
+    fqdn_settings.fqdn.clear();
+
+    // initialize HECI interface
+    if (heci_Init(NULL, PTHI_CLIENT) == 0) return false;
+
+    // get fqdn
+    CFG_GET_FQDN_RESPONSE fqdn;
+    memset(&fqdn, 0, sizeof(CFG_GET_FQDN_RESPONSE));
+    AMT_STATUS amt_status = pthi_GetHostFQDN(&fqdn);
+
+    if (amt_status == 0)
+    {
+        fqdn_settings.ddns_ttl = fqdn.DDNSTTL;
+        fqdn_settings.ddns_update_enabled = fqdn.DDNSUpdateEnabled;
+        fqdn_settings.ddns_update_interval = fqdn.DDNSPeriodicUpdateInterval;
+
+        if (fqdn.FQDN.Length > 0)
+        {
+            fqdn_settings.fqdn = std::string(fqdn.FQDN.Buffer, fqdn.FQDN.Length);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+
 bool cmd_get_dns_suffix(std::string& suffix)
 {
     suffix.clear();

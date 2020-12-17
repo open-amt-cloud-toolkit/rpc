@@ -147,6 +147,10 @@ const PTHI_MESSAGE_HEADER SET_HOST_FQDN_HEADER = {
 	{AMT_MAJOR_VERSION, AMT_MAJOR_VERSION}, 0, {{SET_HOST_FQDN_REQUEST}}, 0
 };
 
+const PTHI_MESSAGE_HEADER GET_FQDN_HEADER = {
+	{AMT_MAJOR_VERSION, AMT_MAJOR_VERSION}, 0, {{GET_FQDN_REQUEST}}, 0
+};
+
 const PTHI_MESSAGE_HEADER GET_LOCAL_SYSTEM_ACCOUNT_HEADER = {
 	{AMT_MAJOR_VERSION, AMT_MINOR_VERSION}, 0, {{GET_LOCAL_SYSTEM_ACCOUNT_REQUEST}}, 40
 };
@@ -202,10 +206,10 @@ AMT_STATUS _call(const unsigned char *command, UINT32 command_size, UINT8 **read
 	{
 		return status;
 	}
-	if ((expSize != 0) && (expSize != outBuffSize))
-	{
-		return PTSDK_STATUS_INTERNAL_ERROR;
-	}
+	//if ((expSize != 0) && (expSize != outBuffSize))
+	//{
+		//return PTSDK_STATUS_INTERNAL_ERROR;
+	//}
 	return AMT_STATUS_SUCCESS;
 }
 
@@ -1358,6 +1362,54 @@ AMT_STATUS pthi_SetHostFQDN(char* str)
 	if (readBuffer != NULL) { free(readBuffer); }
 	return status;
 }
+
+/*
+* Gets host FQDN in AMT Calls to CFG_SET_HOST_FQDN_REQUEST command
+* Arguments:
+*	host - host FQDN
+* Return values:
+*	AMT_STATUS_SUCCESS - on success
+*	PTSDK_STATUS_INTERNAL_ERROR - on failure
+*/
+AMT_STATUS pthi_GetHostFQDN(CFG_GET_FQDN_RESPONSE* fqdn)
+{
+	AMT_STATUS status;
+	UINT8* readBuffer = NULL;
+	UINT32 command_size = sizeof(CFG_GET_HOST_FQDN_REQUEST);
+	CFG_GET_HOST_FQDN_REQUEST command;
+	CFG_GET_FQDN_RESPONSE* tmp_response;
+
+	memset(&command, 0, sizeof(CFG_GET_HOST_FQDN_REQUEST));
+	memcpy_s((UINT8*)&command, sizeof(command), (char*)&(GET_FQDN_HEADER), sizeof(GET_FQDN_HEADER));
+	status = _call((UINT8*)&command, command_size, &readBuffer, GET_FQDN_RESPONSE, sizeof(CFG_GET_FQDN_RESPONSE) - sizeof(char *));
+	
+	// tes
+	if (status == AMT_STATUS_SUCCESS)
+	{
+		tmp_response = (CFG_GET_FQDN_RESPONSE*)readBuffer;
+		memcpy_s(&(fqdn->Header), sizeof(PTHI_MESSAGE_HEADER), (char*)&(tmp_response->Header), sizeof(PTHI_MESSAGE_HEADER));
+		fqdn->Status = tmp_response->Status;
+		fqdn->SharedFQDN = tmp_response->SharedFQDN;
+		fqdn->DDNSUpdateEnabled = tmp_response->DDNSUpdateEnabled;
+		fqdn->DDNSPeriodicUpdateInterval = tmp_response->DDNSPeriodicUpdateInterval;
+		fqdn->DDNSTTL = tmp_response->DDNSTTL;
+		
+		fqdn->FQDN.Length = tmp_response->FQDN.Length;
+		fqdn->FQDN.Buffer = (CHAR*)malloc(fqdn->FQDN.Length * sizeof(CHAR));
+		if (NULL == fqdn->FQDN.Buffer) {
+			status = AMT_STATUS_INTERNAL_ERROR;
+		}
+		else {
+			memcpy_s(fqdn->FQDN.Buffer,
+				fqdn->FQDN.Length * sizeof(CHAR),
+				&(tmp_response->FQDN.Buffer),
+				tmp_response->FQDN.Length * sizeof(CHAR));
+		}
+	}
+	if (readBuffer != NULL) free(readBuffer);
+	return status;
+}
+
 
 
 

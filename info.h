@@ -16,6 +16,7 @@ bool info_get_sku();
 bool info_get_uuid();
 bool info_get_control_mode();
 bool info_get_dns_suffix();
+bool info_get_fqdn();
 bool info_get_all();
 bool info_get_remote_access_connection_status();
 bool info_get_lan_interface_settings();

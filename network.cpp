@@ -4,7 +4,9 @@
 **********************************************************************/
 
 #include "network.h"
+#include "commands.h"
 #include <iostream>
+#include <vector>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -181,5 +183,58 @@ std::string net_get_dns(char* macAddress)
 
     return dnsSuffix;
 }
-
 #endif
+
+std::string net_get_hostname()
+{
+    char hostname[256];
+    std::string hostname_string = "";
+    int result;
+
+#ifdef WIN32
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+    {
+        throw std::runtime_error("error: network error");
+    }
+#endif
+
+    // get hostname
+    result = gethostname(hostname, sizeof(hostname));
+
+#ifdef WIN32
+    WSACleanup();
+#endif
+
+    if (result == 0)
+    {
+        hostname_string = hostname;
+    }
+
+    return hostname_string;
+}
+
+
+std::string net_get_dns()
+{
+    std::string dns_suffix;
+
+    std::vector<unsigned char> address;
+    cmd_get_wired_mac_address(address);
+
+    if (address.size() == 6)
+    {
+        char macAddress[6];
+        macAddress[0] = address[0];
+        macAddress[1] = address[1];
+        macAddress[2] = address[2];
+        macAddress[3] = address[3];
+        macAddress[4] = address[4];
+        macAddress[5] = address[5];
+
+        // get DNS from OS
+        dns_suffix = net_get_dns(macAddress);
+    }
+
+    return dns_suffix;
+}
