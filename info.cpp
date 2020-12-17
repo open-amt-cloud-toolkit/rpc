@@ -153,8 +153,6 @@ bool info_get_certificate_hashes()
 
 bool info_get_all()
 {
-    std::vector<std::string> tmp;
-
     bool status_ver  = info_get_version();
     bool status_bld  = info_get_build_number();
     bool status_sku  = info_get_sku();
@@ -239,6 +237,13 @@ bool info_get_remote_access_connection_status()
 bool info_get_lan_interface_settings()
 {
     lan_interface_settings tmp;
+
+    tmp.is_enabled = false;
+    tmp.link_status = false;
+    tmp.dhcp_enabled = false;
+    tmp.dhcp_mode = 0;
+    tmp.ip_address.clear();
+    tmp.mac_address.clear();
 
     if (!cmd_get_lan_interface_settings(tmp)) return false;
 

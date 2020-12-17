@@ -360,6 +360,7 @@ bool cmd_get_lan_interface_settings(lan_interface_settings& lan_interface_settin
         lan_interface_settings.is_enabled   = lan_settings.Enabled;
         lan_interface_settings.dhcp_mode    = lan_settings.DhcpIpMode;
         lan_interface_settings.dhcp_enabled = lan_settings.DhcpEnabled;
+        lan_interface_settings.link_status  = lan_settings.LinkStatus;
 
         lan_interface_settings.ip_address.push_back((lan_settings.Ipv4Address >> 24) & 0xff);
         lan_interface_settings.ip_address.push_back((lan_settings.Ipv4Address >> 16) & 0xff);
