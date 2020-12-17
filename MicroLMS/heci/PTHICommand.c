@@ -206,10 +206,7 @@ AMT_STATUS _call(const unsigned char *command, UINT32 command_size, UINT8 **read
 	{
 		return status;
 	}
-	//if ((expSize != 0) && (expSize != outBuffSize))
-	//{
-		//return PTSDK_STATUS_INTERNAL_ERROR;
-	//}
+	
 	return AMT_STATUS_SUCCESS;
 }
 
