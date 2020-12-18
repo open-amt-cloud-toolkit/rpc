@@ -37,6 +37,10 @@ if (${BUILD_LIBRARY})
 add_definitions(-D BUILD_LIBRARY)
 endif (${BUILD_LIBRARY})
 
+if (${NO_SELECT})
+add_definitions(-D NO_SELECT)
+endif (${NO_SELECT})
+
 add_definitions( -D_POSIX )
 
 else (UNIX)
@@ -182,17 +186,6 @@ target_link_libraries (
 )
 
 endif (BUILD_LIBRARY)
-
-
-
-
-
-
-
-
-
-
-
 
 endif (UNIX)
 
