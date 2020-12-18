@@ -9,6 +9,7 @@
 #include  <iomanip>
 #include "commands.h"
 #include "utils.h"
+#include "network.h"
 
 const int PADDING = 25;
 
@@ -124,6 +125,29 @@ bool info_get_dns_suffix()
 
     out_text("DNS Suffix", tmp);
 
+
+    tmp = net_get_dns();
+    out_text("DNS Suffix (OS)", tmp);
+
+    return true;
+}
+
+bool info_get_fqdn()
+{
+    fqdn_settings fqdn;
+
+    if (cmd_get_fqdn(fqdn))
+    {
+        out_text("FQDN", fqdn.fqdn);
+    }
+
+    std::string tmp;
+    std::string dns;
+
+    tmp = net_get_hostname();
+    out_text("Hostname (OS)", tmp);
+
+
     return true;
 }
 
@@ -159,12 +183,13 @@ bool info_get_all()
     bool status_uuid = info_get_uuid();
     bool status_mode = info_get_control_mode();
     bool status_dns  = info_get_dns_suffix();
+    bool status_fqdn = info_get_fqdn();
     bool status_ras  = info_get_remote_access_connection_status();
     bool status_lan  = info_get_lan_interface_settings();
     bool status_cert = info_get_certificate_hashes();
 
     if (status_ver && status_bld && status_sku && status_uuid && status_mode &&
-        status_dns && status_ras && status_lan && status_cert)
+        status_dns && status_fqdn && status_ras && status_lan && status_cert)
     {
         return true;
     }
@@ -282,6 +307,10 @@ bool info_get(const std::string info)
     {
         return info_get_dns_suffix();
     }
+    else if (info.compare("fqdn") == 0)
+    {
+        return info_get_fqdn();
+    }
     else if (info.compare("cert") == 0)
     {
         return info_get_certificate_hashes();
@@ -304,10 +333,10 @@ bool info_get(const std::string info)
 
 bool info_get_verify(const std::string info)
 {
-    if ((info.compare("ver")  == 0) || (info.compare("bld")  == 0) || (info.compare("sku") == 0) || 
-        (info.compare("uuid") == 0) || (info.compare("mode") == 0) || (info.compare("dns") == 0) || 
-        (info.compare("cert") == 0) || (info.compare("ras")  == 0) || (info.compare("lan") == 0) || 
-        (info.compare("all") == 0))
+    if ((info.compare("ver")  == 0) || (info.compare("bld")  == 0) || (info.compare("sku") == 0)  || 
+        (info.compare("uuid") == 0) || (info.compare("mode") == 0) || (info.compare("fqdn") == 0) || 
+        (info.compare("dns") == 0)  || (info.compare("cert") == 0) || (info.compare("ras")  == 0) || 
+        (info.compare("lan") == 0)  || (info.compare("all") == 0))
     {
         return true;
     }

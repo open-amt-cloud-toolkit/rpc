@@ -40,6 +40,7 @@ void usage_show_help()
     std::cout << "   uuid                           unique identifier"                              << std::endl;
     std::cout << "   mode                           current control mode"                           << std::endl;
     std::cout << "   dns                            domain name suffix"                             << std::endl;
+    std::cout << "   fqdn                           fully qualified domain name"                    << std::endl;
     std::cout << "   cert                           certificate hashes"                             << std::endl;
     std::cout << "   ras                            remote access status"                           << std::endl;
     std::cout << "   lan                            LAN settings"                                   << std::endl;

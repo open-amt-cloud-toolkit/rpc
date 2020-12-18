@@ -126,23 +126,21 @@ add_dependencies(rpc MicroLMS )
 
 target_link_libraries (rpc PRIVATE 
   MicroLMS
-  iphlpapi
   cpprestsdk::cpprest
   cpprestsdk::cpprestsdk_zlib_internal
   cpprestsdk::cpprestsdk_boost_internal
   cpprestsdk::cpprestsdk_brotli_internal
-  ${Boost_LIBRARIES}
   DbgHelp.lib
-    Iphlpapi.lib
-    Setupapi.lib
-    ws2_32.lib
-    Psapi.lib
-    Crypt32.lib
-    Wintrust.lib
-    Version.lib
-    Wtsapi32.lib
-    Gdiplus.lib
-    Userenv.lib
+  Iphlpapi.lib
+  Setupapi.lib
+  ws2_32.lib
+  Psapi.lib
+  Crypt32.lib
+  Wintrust.lib
+  Version.lib
+  Wtsapi32.lib
+  Gdiplus.lib
+  Userenv.lib
 )
 
 endif (UNIX)

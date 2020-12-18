@@ -9,5 +9,7 @@
 #include <string>
 
 std::string net_get_dns(char* macAddress);
+std::string net_get_hostname();
+std::string net_get_dns();
 
 #endif

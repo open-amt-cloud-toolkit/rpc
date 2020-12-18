@@ -28,6 +28,15 @@ struct lan_interface_settings
     std::vector<unsigned char> mac_address;
 };
 
+struct fqdn_settings
+{
+    bool shared_fqdn;
+    bool ddns_update_enabled;
+    int  ddns_update_interval;
+    int  ddns_ttl;
+    std::string fqdn;
+};
+
 bool cmd_is_admin();
 bool cmd_get_version(std::string& version);
 bool cmd_get_build_number(std::string& version);
@@ -35,6 +44,7 @@ bool cmd_get_sku(std::string& version);
 bool cmd_get_uuid(std::vector<unsigned char>& uuid);
 bool cmd_get_local_system_account(std::string& username, std::string& password);
 bool cmd_get_control_mode(int& mode);
+bool cmd_get_fqdn(fqdn_settings& fqdn_settings);
 bool cmd_get_dns_suffix(std::string& suffix);
 bool cmd_get_wired_mac_address(std::vector<unsigned char>& address);
 bool cmd_get_certificate_hashes(std::vector<cert_hash_entry>& hash_entries);

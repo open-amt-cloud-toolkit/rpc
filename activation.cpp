@@ -60,22 +60,8 @@ std::string get_dns_info()
 
     if (!dnsSuffix.length())
     {
-        std::vector<unsigned char> address;
-        cmd_get_wired_mac_address(address);
-
-        if (address.size() == 6)
-        {
-            char macAddress[6];
-            macAddress[0] = address[0];
-            macAddress[1] = address[1];
-            macAddress[2] = address[2];
-            macAddress[3] = address[3];
-            macAddress[4] = address[4];
-            macAddress[5] = address[5];
-
-            // get DNS from OS
-            dnsSuffix = net_get_dns(macAddress);
-        }
+        // get DNS from OS
+        dnsSuffix = net_get_dns();
     }
 
     return dnsSuffix;

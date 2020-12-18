@@ -509,6 +509,18 @@ typedef struct _AMT_PROV_AUDIT_RECORD
 	AMT_ANSI_STRING      ProvServerFQDN;
 } AMT_PROV_AUDIT_RECORD;
 
+typedef struct
+{
+	PTHI_MESSAGE_HEADER                Header;
+	AMT_STATUS                         Status;
+	AMT_BOOLEAN                        SharedFQDN;
+	AMT_BOOLEAN                        DDNSUpdateEnabled;
+	UINT32                             DDNSPeriodicUpdateInterval;
+	UINT32                             DDNSTTL;
+	UINT32                             HostNameLength;
+	AMT_ANSI_STRING                    FQDN;
+}  CFG_GET_FQDN_RESPONSE;
+
 typedef struct _CFG_GENERATE_RNG_SEED_RESPONSE
 {
 	PTHI_RESPONSE_MESSAGE_HEADER Header;
@@ -582,6 +594,11 @@ typedef struct CFG_SET_HOST_FQDN_REQUEST
 	UINT16 FQDNL;
 	char   FQDN[256];
 }CFG_SET_HOST_FQDN_REQUEST;
+
+typedef struct CFG_GET_HOST_FQDN_REQUEST
+{
+	PTHI_MESSAGE_HEADER	Header;
+} CFG_GET_HOST_FQDN_REQUEST;
 
 typedef struct _CFG_SET_HOST_FQDN_RESPONSE
 {
@@ -678,6 +695,7 @@ AMT_STATUS pthi_EnumerateHashHandles(AMT_HASH_HANDLES *hashHandles);
 AMT_STATUS pthi_GetCertificateHashEntry(UINT32 hashHandle, CERTHASH_ENTRY *hashEntry);
 AMT_STATUS pthi_GetDnsSuffix(AMT_ANSI_STRING *dnsSuffix);
 AMT_STATUS pthi_SetHostFQDN(char* str);
+AMT_STATUS pthi_GetHostFQDN(CFG_GET_FQDN_RESPONSE* fqdn);
 AMT_STATUS pthi_GetLocalSystemAccount(LOCAL_SYSTEM_ACCOUNT *localAccount);
 AMT_STATUS pthi_Unprovision(CFG_PROVISIONING_MODE provisionMode);
 AMT_STATUS pthi_GetStateEHBC(AMT_EHBC_STATE *state);
@@ -789,6 +807,10 @@ const PTHI_MESSAGE_HEADER GET_FEATURES_STATE_HEADER;
 #define SET_HOST_FQDN_REQUEST 0x0400005b
 #define SET_HOST_FQDN_RESPONSE  0x0480005b
 //const PTHI_MESSAGE_HEADER GET_PKI_FQDN_SUFFIX_HEADER;
+
+#define GET_FQDN_REQUEST 0x4000056
+#define GET_FQDN_RESPONSE  0x4800056 
+
 
 #define GET_LOCAL_SYSTEM_ACCOUNT_REQUEST 0x04000067
 #define GET_LOCAL_SYSTEM_ACCOUNT_RESPONSE 0x04800067
