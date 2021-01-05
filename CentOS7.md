@@ -14,7 +14,7 @@ The steps below assume the following directory structure where **rpc** is the cl
 
 Steps below are for CentOS7.
 
-**The "export PATH=..." for CMake and "scl enable devtoolset-7 bash" must be executed in in the Terminal you are building from; i.e. these are temporary changes which only affect the current Terminal session.**
+**The "export PATH=..." (for CMake and Build Git), and "scl enable devtoolset-7 bash" (for GCC) must be executed in in the Terminal you are building from; i.e. these are temporary changes which only affect the current Terminal session.**
 
 ## Dependencies
 
@@ -35,11 +35,14 @@ sudo yum install devtoolset-7
 scl enable devtoolset-7 bash
 ```
 
-### Git
-Update Git source control.
+### Build Git
+Build Git source control system.
 ```
-rpm -U http://opensource.wandisco.com/centos/7/git/x86_64/wandisco-git-release-7-2.noarch.rpm \
-    && yum install -y git
+sudo yum install curl-devel expat-devel gettext-devel openssl-devel zlib-devel perl-CPAN perl-devel
+git clone https://github.com/git/git.git
+make configure
+make
+export PATH=/home/user/Downloads/git:$PATH
 ```
 
 ## Build C++ REST SDK
