@@ -14,7 +14,7 @@ The steps below assume the following directory structure where **rpc** is the cl
 
 Steps below are for CentOS7.
 
-**The "export PATH=..." (for CMake and Build Git), and "scl enable devtoolset-7 bash" (for GCC) must be executed in in the Terminal you are building from; i.e. these are temporary changes which only affect the current Terminal session.**
+**The "export PATH=..." (for CMake and Git), and "scl enable devtoolset-7 bash" (for GCC) must be executed in in the Terminal you are building from; i.e. these are temporary changes which only affect the current Terminal session.**
 
 ## Dependencies
 
@@ -35,7 +35,7 @@ sudo yum install devtoolset-7
 scl enable devtoolset-7 bash
 ```
 
-### Build Git
+### Git
 Build Git source control system.
 ```
 sudo yum install curl-devel expat-devel gettext-devel openssl-devel zlib-devel perl-CPAN perl-devel
