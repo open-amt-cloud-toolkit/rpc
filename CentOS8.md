@@ -12,17 +12,20 @@ The steps below assume the following directory structure where **rpc** is the cl
 
 # Linux
 
-Steps below are for Ubuntu 18.04 and 20.04.
+Steps below are for CentOS8.
 
 ## Dependencies
 
+### CMake
+Install CMake.
+    
 ```
-sudo apt install git cmake build-essential libboost-system-dev  libboost-thread-dev libboost-random-dev libboost-regex-dev libboost-filesystem-dev libssl-dev zlib1g-dev
+sudo yum install cmake
 ```
 
 ## Build C++ REST SDK
 
-Open a Terminal window.
+Using a Terminal window with the PATH and devtoolset enabled per the Dependencies.
 
 ```
 git clone https://github.com/microsoft/vcpkg.git
@@ -33,7 +36,7 @@ cd vcpkg
 
 ## Build RPC
 
-Open a Terminal window.
+Using a Terminal window with the PATH and devtoolset enabled per the Dependencies.
 
 ```
 mkdir build
@@ -58,44 +61,3 @@ sudo ./rpc --url wss://localhost:8080 --cmd "-t activate --profile profile1"
 ```
 
 Use --help for more options.
-
-# Windows
-
-Steps below are for Windows 10 and Visual Studio 2019 Professional.
-
-## Build C++ REST SDK
-
-Open an x64 Native Tools Command Prompt for Visual Studio 2019.
-
-```
-git clone https://github.com/microsoft/vcpkg.git
-cd vcpkg
-bootstrap-vcpkg.bat
-vcpkg install cpprestsdk[websockets]:x64-windows-static
-```
-
-## Build RPC
-Open an x64 Native Tools Command Prompt for Visual Studio 2019.
-```
-mkdir build
-cd build
-cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static -DCMAKE_TOOLCHAIN_FILE=/rpc/vcpkg/scripts/buildsystems/vcpkg.cmake ..
-cmake --build . --config Release
-```
-
-To build debug:
-```
-cmake --build . --config Debug
-```
-
-## Run RPC
-
-Open a Command Prompt as Administrator.
-
-```
-cd build\Release
-rpc.exe --url wss://localhost:8080 --cmd "-t activate --profile profile1"
-```
-
-Use --help for more options.
-

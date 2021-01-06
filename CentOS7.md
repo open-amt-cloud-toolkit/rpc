@@ -52,7 +52,7 @@ Using a Terminal window with the PATH and devtoolset enabled per the Dependencie
 ```
 git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg
-./bootstrap-vcpkg.bat
+./bootstrap-vcpkg.sh
 ./vcpkg install cpprestsdk[websockets]
 ```
 
