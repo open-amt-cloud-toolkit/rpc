@@ -17,7 +17,7 @@ Steps below are for Ubuntu 18.04 and 20.04.
 ## Dependencies
 
 ```
-sudo apt install git cmake build-essential libboost-system-dev  libboost-thread-dev libboost-random-dev libboost-regex-dev libboost-filesystem-dev libssl-dev zlib1g-dev
+sudo apt install git cmake build-essential curl zip unzip tar pkg-config
 ```
 
 ## Build C++ REST SDK
