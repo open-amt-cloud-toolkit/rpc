@@ -25,7 +25,7 @@ sudo apt install git cmake build-essential curl zip unzip tar pkg-config
 Open a Terminal window.
 
 ```
-git clone https://github.com/microsoft/vcpkg.git
+git clone -b 2020.11-1 https://github.com/microsoft/vcpkg.git
 cd vcpkg
 ./bootstrap-vcpkg.sh
 ./vcpkg install cpprestsdk[websockets]
