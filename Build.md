@@ -68,7 +68,7 @@ Steps below are for Windows 10 and Visual Studio 2019 Professional.
 Open an x64 Native Tools Command Prompt for Visual Studio 2019.
 
 ```
-git clone https://github.com/microsoft/vcpkg.git
+git clone -b 2020.11-1 https://github.com/microsoft/vcpkg.git
 cd vcpkg
 bootstrap-vcpkg.bat
 vcpkg install cpprestsdk[websockets]:x64-windows-static
