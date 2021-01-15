@@ -12,6 +12,7 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+
   build-windows:
     runs-on: windows-2019
     steps:
@@ -19,7 +20,7 @@ jobs:
     - name: Create Build Dir
       run: mkdir build
     - name: Clone
-      run: git clone --branch 2020.01 https://github.com/microsoft/vcpkg.git
+      run: git clone --branch 2020.11-1 https://github.com/microsoft/vcpkg.git
     - name: Build VCPKG
       run: cd vcpkg && bootstrap-vcpkg.bat
       shell: cmd
@@ -27,11 +28,8 @@ jobs:
       run: ls
     - name: dir
       run: cd vcpkg && ls
-    - name: Integrate with VS
-      run:  ${{ runner.workspace }}\rpc\vcpkg\vcpkg.exe integrate install
-      shell: cmd
     - name: Install C++ REST SDK
-      run:  ${{ runner.workspace }}\rpc\vcpkg\vcpkg.exe install cpprestsdk:x64-windows-static
+      run:  ${{ runner.workspace }}\rpc\vcpkg\vcpkg.exe install cpprestsdk[websockets]:x64-windows-static
       shell: cmd
     - name: dir
       run: ls && cd vcpkg && ls
@@ -54,13 +52,28 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install Dependencies
-      run: |
-        sudo apt install libboost-system-dev libboost-thread-dev libboost-random-dev libboost-regex-dev  libboost-filesystem-dev libssl-dev zlib1g-dev -y
-        mkdir build 
-        cd build
-        cmake -DCMAKE_BUILD_TYPE=Debug ..
-        cmake --build .
-        
+      run: sudo apt install git cmake build-essential curl zip unzip tar pkg-config
+    - name: Create Build Dir
+      run: mkdir build
+    - name: Clone
+      run: git clone --branch 2020.11-1 https://github.com/microsoft/vcpkg.git
+    - name: Build VCPKG
+      run: cd vcpkg && ./bootstrap-vcpkg.sh
+      shell: bash
+    - name: dir
+      run: ls
+    - name: dir
+      run: cd vcpkg && ls
+    - name: Install C++ REST SDK
+      run:  ${{ runner.workspace }}/rpc/vcpkg/vcpkg install cpprestsdk[websockets]
+      shell: bash
+    - name: dir
+      run: ls && cd vcpkg && ls
+      shell: bash
+    - name: Prepare for build
+      run:  cd build && cmake .. -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/rpc/vcpkg/scripts/buildsystems/vcpkg.cmake
+    - name: Build RPC
+      run: cd build && cmake --build . --config Debug
     - name: GitHub Upload Release Artifacts
       uses: actions/upload-artifact@v2
       with:
