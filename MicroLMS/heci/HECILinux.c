@@ -105,13 +105,17 @@ static ssize_t mei_recv_msg(struct mei *me, unsigned char *buffer, ssize_t len, 
 
 static ssize_t mei_send_msg(struct mei *me, const unsigned char *buffer, ssize_t len, unsigned long timeout)
 {
+#ifndef NO_SELECT
 	struct timeval tv;
+#endif
 	ssize_t written;
 	ssize_t rc;
 	fd_set set;
 
+#ifndef NO_SELECT
 	tv.tv_sec = timeout / 1000;
 	tv.tv_usec = (timeout % 1000) * 1000000;
+#endif
 
 	mei_msg(me, "call write length = %zd, cmd=%d\n", len, (int)buffer[0]);
 
@@ -123,7 +127,7 @@ static ssize_t mei_send_msg(struct mei *me, const unsigned char *buffer, ssize_t
 		mei_err(me, "write failed with status %zd %s\n", written, strerror(errno));
 		goto out;
 	}
-
+#ifndef NO_SELECT
 	FD_ZERO(&set);
 	FD_SET(me->fd, &set);
 	rc = select(me->fd + 1 , NULL, &set, NULL, &tv);
@@ -136,7 +140,7 @@ static ssize_t mei_send_msg(struct mei *me, const unsigned char *buffer, ssize_t
 		mei_err(me, "write failed on select with status %zd\n", rc);
 		goto out;
 	}
-
+#endif
 	rc = written;
 out:
 	sem_post(&(me->Lock));
