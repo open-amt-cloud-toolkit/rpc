@@ -1,0 +1,94 @@
+#*********************************************************************
+# Copyright (c) Intel Corporation 2020
+# SPDX-License-Identifier: Apache-2.0
+#*********************************************************************/
+
+name: Build RPC (Native)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type can be "debug" or "release"'
+        required: true
+        default: "release"
+
+env:
+  BUILD_TYPE: ${{github.event.inputs.build_type}}
+
+jobs:
+  build-windows:
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v2
+      - name: Create Build Dir
+        run: mkdir build
+      - name: Clone
+        run: git clone --branch 2020.11-1 https://github.com/microsoft/vcpkg.git
+      - name: Build VCPKG
+        run: cd vcpkg && bootstrap-vcpkg.bat
+        shell: cmd
+      - name: dir
+        run: ls
+      - name: dir
+        run: cd vcpkg && ls
+      - name: Install C++ REST SDK
+        run: ${{ runner.workspace }}\rpc\vcpkg\vcpkg.exe install cpprestsdk[websockets]:x64-windows-static
+        shell: cmd
+      - name: dir
+        run: ls && cd vcpkg && ls
+        shell: bash
+      - name: Prepare for build
+        run: cd build && cmake .. -DCMAKE_PREFIX_PATH=D:/a/rpc/rpc/vcpkg/installed/x64-windows-static -DVCPKG_TARGET_TRIPLET=x64-windows-static -DCMAKE_TOOLCHAIN_FILE=D:/a/rpc/rpc/vcpkg/scripts/buildsystems/vcpkg.cmake
+      - name: Build RPC (Debug)
+        if: ${{ github.event.inputs.build_type == "debug" }}
+        run: cd build && cmake --build . --config Debug
+      - name: Build RPC (Release)
+        if: ${{ github.event.inputs.build_type == "release" }}
+        run: cd build && cmake --build .
+      - name: GitHub Upload Release Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: RPC_Windows.exe
+          path: ${{ runner.workspace }}\rpc\build\${{github.event.inputs.build_type}}\rpc_${{github.event.inputs.build_type}}.exe
+
+  build-linux:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, ubuntu-20.04]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: sudo apt install git cmake build-essential curl zip unzip tar pkg-config
+      - name: Create Build Dir
+        run: mkdir build
+      - name: Clone
+        run: git clone --branch 2020.11-1 https://github.com/microsoft/vcpkg.git
+      - name: Build VCPKG
+        run: cd vcpkg && ./bootstrap-vcpkg.sh
+        shell: bash
+      - name: dir
+        run: ls
+      - name: dir
+        run: cd vcpkg && ls
+      - name: Install C++ REST SDK
+        run: ${{ runner.workspace }}/rpc/vcpkg/vcpkg install cpprestsdk[websockets]
+        shell: bash
+      - name: dir
+        run: ls && cd vcpkg && ls
+        shell: bash
+      - name: Prepare for build
+        run: cd build && cmake .. -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/rpc/vcpkg/scripts/buildsystems/vcpkg.cmake
+      - name: Build RPC (Debug)
+        if: ${{ github.event.inputs.build_type == "debug" }}
+        run: cd build && cmake --build . --config Debug
+      - name: Build RPC (Release)
+        if: ${{ github.event.inputs.build_type == "release" }}
+        run: cd build && cmake --build .
+      - name: GitHub Upload Release Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: RPC_Linux_${{ matrix.os }}
+          path: |
+            build/rpc_${{github.event.inputs.build_type}}
