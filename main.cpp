@@ -60,6 +60,7 @@ int main(int argc, char* argv[])
     std::string arg_dns;
     std::string arg_info;
     bool arg_verbose = false;
+    bool arg_nocertcheck = false;
 
     if (argc == 1)
     {
@@ -116,6 +117,13 @@ int main(int argc, char* argv[])
         arg_verbose = true;
     }
 
+    // no websocket server certificate verification
+    if (args_get_nocertcheck(argc, argv))
+    {
+        arg_nocertcheck = true;
+    }
+
+
     // Print version info
     usage_show_version();
 
@@ -160,11 +168,15 @@ int main(int argc, char* argv[])
     {
         client_config.set_proxy(web::web_proxy(utility::conversions::to_string_t(arg_proxy)));
     }
-#ifdef DEBUG
-    // skip certificate verification if debug build
-    std::cout << "Skipping certificate verification." << std::endl;
-    client_config.set_validate_certificates(false);
-#endif
+
+    // websocket server certificate verification
+    if (arg_nocertcheck)
+    {
+        // skip websocket server certificate verification
+        std::cout << "Skipping certificate verification." << std::endl;
+        client_config.set_validate_certificates(false);
+    }
+
     web::websockets::client::websocket_callback_client client(client_config);
     std::condition_variable cv;
     std::mutex mx;
