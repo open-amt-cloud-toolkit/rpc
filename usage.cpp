@@ -25,6 +25,7 @@ void usage_show_help()
     std::cout << "Optional:"                                                                        << std::endl;
     std::cout << "  -p, --proxy <addr>              proxy address and port"                         << std::endl;
     std::cout << "  -d, --dns <dns>                 dns suffix override"                            << std::endl;
+    std::cout << "  -n, --nocertcheck               skip websocket server certificate verification" << std::endl;
     std::cout << "  -v, --verbose                   verbose output"                                 << std::endl;
     std::cout                                                                                       << std::endl;
     std::cout << "Informational:"                                                                   << std::endl;

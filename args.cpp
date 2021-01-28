@@ -127,3 +127,8 @@ bool args_get_verbose(int argc, char* argv[])
 {
     return get_arg_exists(argc, argv, "--verbose", "-v");
 }
+
+bool args_get_nocertcheck(int argc, char* argv[])
+{
+    return get_arg_exists(argc, argv, "--nocertcheck", "-n");
+}
