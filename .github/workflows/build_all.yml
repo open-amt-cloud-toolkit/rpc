@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #*********************************************************************/
 
-name: Build RPC (Native)
+name: Build RPC (Native) Debug/Release
 
 on:
   workflow_dispatch:
@@ -41,16 +41,16 @@ jobs:
       - name: Prepare for build
         run: cd build && cmake .. -DCMAKE_PREFIX_PATH=D:/a/rpc/rpc/vcpkg/installed/x64-windows-static -DVCPKG_TARGET_TRIPLET=x64-windows-static -DCMAKE_TOOLCHAIN_FILE=D:/a/rpc/rpc/vcpkg/scripts/buildsystems/vcpkg.cmake
       - name: Build RPC (Debug)
-        if: ${{ github.event.inputs.build_type == "debug" }}
+        if: ${{ github.event.inputs.build_type }} == "debug"
         run: cd build && cmake --build . --config Debug
       - name: Build RPC (Release)
-        if: ${{ github.event.inputs.build_type == "release" }}
+        if: ${{ github.event.inputs.build_type }} == "release" 
         run: cd build && cmake --build .
       - name: GitHub Upload Release Artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: RPC_Windows.exe
-          path: ${{ runner.workspace }}\rpc\build\${{github.event.inputs.build_type}}\rpc_${{github.event.inputs.build_type}}.exe
+          name: RPC_Windows_${{github.event.inputs.build_type}}.exe
+          path: ${{ runner.workspace }}\rpc\build\${{github.event.inputs.build_type}}\rpc.exe
 
   build-linux:
     runs-on: ${{ matrix.os }}
@@ -81,14 +81,14 @@ jobs:
       - name: Prepare for build
         run: cd build && cmake .. -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/rpc/vcpkg/scripts/buildsystems/vcpkg.cmake
       - name: Build RPC (Debug)
-        if: ${{ github.event.inputs.build_type == "debug" }}
+        if: ${{ github.event.inputs.build_type }} == "debug"
         run: cd build && cmake --build . --config Debug
       - name: Build RPC (Release)
-        if: ${{ github.event.inputs.build_type == "release" }}
+        if: ${{ github.event.inputs.build_type }} == "release"
         run: cd build && cmake --build .
       - name: GitHub Upload Release Artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: RPC_Linux_${{ matrix.os }}
+          name: RPC_Linux_${{ matrix.os }}_${{github.event.inputs.build_type}}
           path: |
-            build/rpc_${{github.event.inputs.build_type}}
+            build/rpc
