@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       build_type:
-        description: 'Build Type can be "debug" or "release"'
+        description: 'Build Type can be "debug" or "release".'
         required: true
         default: "release"
 
@@ -45,12 +45,19 @@ jobs:
         run: cd build && cmake --build . --config Debug
       - name: Build RPC (Release)
         if: ${{ github.event.inputs.build_type }} == "release" 
-        run: cd build && cmake --build .
+        run: cd build && cmake --build . --config Release
       - name: GitHub Upload Release Artifacts
+        if: ${{ github.event.inputs.build_type }} == "release"
         uses: actions/upload-artifact@v2
         with:
-          name: RPC_Windows_${{github.event.inputs.build_type}}.exe
-          path: ${{ runner.workspace }}\rpc\build\${{github.event.inputs.build_type}}\rpc.exe
+          name: RPC_Windows_release.exe
+          path: ${{ runner.workspace }}\rpc\build\Release\rpc.exe
+      - name: GitHub Upload Release Artifacts
+        if: ${{ github.event.inputs.build_type }} == "debug"
+        uses: actions/upload-artifact@v2        
+        with:
+          name: RPC_Windows_debug.exe
+          path: ${{ runner.workspace }}\rpc\build\Debug\rpc.exe
 
   build-linux:
     runs-on: ${{ matrix.os }}
@@ -79,12 +86,12 @@ jobs:
         run: ls && cd vcpkg && ls
         shell: bash
       - name: Prepare for build
-        run: cd build && cmake .. -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/rpc/vcpkg/scripts/buildsystems/vcpkg.cmake
-      - name: Build RPC (Debug)
         if: ${{ github.event.inputs.build_type }} == "debug"
-        run: cd build && cmake --build . --config Debug
-      - name: Build RPC (Release)
+        run: cd build && cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/rpc/vcpkg/scripts/buildsystems/vcpkg.cmake
+      - name: Prepare for build
         if: ${{ github.event.inputs.build_type }} == "release"
+        run: cd build && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/rpc/vcpkg/scripts/buildsystems/vcpkg.cmake
+      - name: Build RPC
         run: cd build && cmake --build .
       - name: GitHub Upload Release Artifacts
         uses: actions/upload-artifact@v2
