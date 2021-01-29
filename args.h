@@ -16,5 +16,6 @@ bool args_get_cmd(int argc, char* argv[], std::string& cmd);
 bool args_get_dns(int argc, char* argv[], std::string& dns);
 bool args_get_info(int argc, char* argv[], std::string& info);
 bool args_get_verbose(int argc, char* argv[]);
+bool args_get_nocertcheck(int argc, char* argv[]);
 
 #endif
