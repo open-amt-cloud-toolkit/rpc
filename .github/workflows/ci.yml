@@ -37,7 +37,9 @@ jobs:
       shell: bash
     - name: Prepare for build
       run:  cd build && cmake .. -DCMAKE_PREFIX_PATH=D:/a/rpc/rpc/vcpkg/installed/x64-windows-static -DVCPKG_TARGET_TRIPLET=x64-windows-static -DCMAKE_TOOLCHAIN_FILE=D:/a/rpc/rpc/vcpkg/scripts/buildsystems/vcpkg.cmake
-    - name: Build RPC
+    - name: Build RPC (Release)
+      run: cd build && cmake --build . --config Release
+    - name: Build RPC (Debug)
       run: cd build && cmake --build . --config Debug
 
 
@@ -68,6 +70,6 @@ jobs:
       run: ls && cd vcpkg && ls
       shell: bash
     - name: Prepare for build
-      run:  cd build && cmake .. -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/rpc/vcpkg/scripts/buildsystems/vcpkg.cmake
+      run:  cd build && cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/rpc/vcpkg/scripts/buildsystems/vcpkg.cmake
     - name: Build RPC
-      run: cd build && cmake --build . --config Debug
+      run: cd build && cmake --build .
