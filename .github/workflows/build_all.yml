@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #*********************************************************************/
 
-name: Build RPC (Native)
+name: Build RPC (Native) Debug/Release
 
 on:
   workflow_dispatch:
