@@ -4,7 +4,7 @@
 #   - Ubuntu 18.04
 #
 
-apt install git cmake build-essential curl zip unzip tar pkg-config
+apt install git cmake build-essential curl zip unzip tar pkg-config -y
 
 ## current dir - RPC source directory
 export BASE_DIR="$PWD"
