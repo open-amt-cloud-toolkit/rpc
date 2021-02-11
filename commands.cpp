@@ -200,6 +200,7 @@ bool cmd_get_fqdn(fqdn_settings& fqdn_settings)
         if (fqdn.FQDN.Length > 0)
         {
             fqdn_settings.fqdn = std::string(fqdn.FQDN.Buffer, fqdn.FQDN.Length);
+            free(fqdn.FQDN.Buffer);
         }
 
         return true;
