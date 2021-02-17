@@ -171,6 +171,10 @@ const PTHI_MESSAGE_HEADER GET_UUID_REQUEST_HEADER = {
 	{AMT_MAJOR_VERSION, AMT_MINOR_VERSION}, 0, {{GET_UUID_REQUEST}}, 0
 };
 
+const PTHI_MESSAGE_HEADER GET_START_CONFIG_HBASED_REQUEST_HEADER = {
+	{AMT_MAJOR_VERSION, AMT_MINOR_VERSION}, 0, {{GET_START_CONFIG_HBASED_REQUEST}}, 396
+};
+
 AMT_STATUS _call(const unsigned char *command, UINT32 command_size, UINT8 **readBuffer, UINT32 rcmd, unsigned int expSize)
 {
 	UINT32 inBuffSize;
@@ -1497,6 +1501,45 @@ AMT_STATUS pthi_GetUUID(AMT_UUID *uuid)
 	{
 		tmp_response = (CFG_GET_UUID_RESPONSE*)readBuffer;
 		memcpy_s(uuid, sizeof(AMT_UUID), (char*)&(tmp_response->UUID), sizeof(AMT_UUID)); // uuid
+	}
+	if (readBuffer != NULL) free(readBuffer);
+	return status;
+}
+
+/*
+ * Start Configuration Host Based 
+ * Arguments:
+ *	request - host based configuration input parameters provided by the caller
+ *	response - host based configuration output parameters returned to the caller
+ * Return values: (A status code returned in a response message that indicates whether the operation specified in the corresponding request message succeeded or failed. If the operation failed, this code indicates the specific reason for failure. Possible values described below.)
+ *	AMT_STATUS_SUCCESS - Request succeeded.
+ *  AMT_STATUS_INTERNAL_ERROR - An internal error to the AMT device has occurred. This may indicate an interface error, or a AMT application error.
+ *  AMT_STATUS_INVALID_MESSAGE_LENGTH - Length field of header is invalid.
+ * 
+ */
+AMT_STATUS pthi_StartConfigHBased(CFG_START_CONFIG_HBASED_REQUEST_INFO *request, CFG_START_CONFIG_HBASED_RESPONSE_INFO *response)
+{
+	UINT8* readBuffer = NULL;
+	UINT32 command_size = sizeof(CFG_START_CONFIG_HBASED_REQUEST);
+	unsigned char command[sizeof(CFG_START_CONFIG_HBASED_REQUEST)];
+	AMT_STATUS status;
+	CFG_START_CONFIG_HBASED_RESPONSE* tmp_response;
+
+	memset(command, 0, sizeof(CFG_START_CONFIG_HBASED_REQUEST));
+	memcpy_s(command, sizeof(command), (char*)&(GET_START_CONFIG_HBASED_REQUEST_HEADER), sizeof(GET_START_CONFIG_HBASED_REQUEST_HEADER));
+
+	((CFG_START_CONFIG_HBASED_REQUEST*)command)->Info.ServerHashAlgorithm = request->ServerHashAlgorithm;
+	((CFG_START_CONFIG_HBASED_REQUEST*)command)->Info.HostVPNEnable = request->HostVPNEnable;
+	((CFG_START_CONFIG_HBASED_REQUEST*)command)->Info.SuffixListLen = request->SuffixListLen;
+	memcpy_s(((CFG_START_CONFIG_HBASED_REQUEST*)command)->Info.ServerCertHash, 64, request->ServerCertHash, 64);
+	memcpy_s(((CFG_START_CONFIG_HBASED_REQUEST*)command)->Info.NetworkDnsSuffixList, 320, request->NetworkDnsSuffixList, 320);
+
+	status = _call(command, command_size, &readBuffer, GET_START_CONFIG_HBASED_RESPONSE, sizeof(CFG_START_CONFIG_HBASED_RESPONSE));
+
+	if (status == AMT_STATUS_SUCCESS)
+	{
+		tmp_response = (CFG_START_CONFIG_HBASED_RESPONSE*)readBuffer;
+		memcpy_s(response, sizeof(CFG_START_CONFIG_HBASED_RESPONSE_INFO), &(tmp_response->Info), sizeof(CFG_START_CONFIG_HBASED_RESPONSE_INFO));
 	}
 	if (readBuffer != NULL) free(readBuffer);
 	return status;
