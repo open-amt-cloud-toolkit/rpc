@@ -249,7 +249,7 @@ int main(int argc, char* argv[])
             // process any messages we can
             //   - if success, done
             //   - if error, get out
-            if (msgMethod.compare("success")==0)
+            if (msgStatus.compare("success")==0)
             {
                 // cleanup
                 g_timeout_val = 0;
@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
                 std::cout << std::endl << msgMessage << std::endl;
                 return;
             }
-            else if (msgMethod.compare("error")==0)
+            else if (msgStatus.compare("failed")==0)
             {
                 // cleanup
                 g_timeout_val = 0;
