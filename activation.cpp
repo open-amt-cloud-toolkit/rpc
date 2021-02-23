@@ -236,7 +236,7 @@ bool act_create_request(std::string commands, std::string dns_suffix, std::strin
     utility::string_t tmp = utility::conversions::convertstring(commands);
     msg[U("method")] = web::json::value::string(tmp);
 
-    tmp = utility::conversions::convertstring("key");
+    tmp = utility::conversions::convertstring("");
     msg[U("apiKey")] = web::json::value::string(tmp);
 
     tmp = utility::conversions::convertstring(PROJECT_VER);
@@ -245,10 +245,10 @@ bool act_create_request(std::string commands, std::string dns_suffix, std::strin
     tmp = utility::conversions::convertstring(PROTOCOL_VERSION);
     msg[U("protocolVersion")] = web::json::value::string(tmp);
 
-    tmp = utility::conversions::convertstring("ok");
+    tmp = utility::conversions::convertstring("");
     msg[U("status")] = web::json::value::string(tmp);
 
-    tmp = utility::conversions::convertstring("ok");
+    tmp = utility::conversions::convertstring("");
     msg[U("message")] = web::json::value::string(tmp);
 
     // get the activation payload
@@ -281,7 +281,7 @@ bool act_create_response(std::string payload, std::string& response)
     utility::string_t tmp = utility::conversions::convertstring("response");
     msg[U("method")] = web::json::value::string(tmp);
 
-    tmp = utility::conversions::convertstring("key");
+    tmp = utility::conversions::convertstring("");
     msg[U("apiKey")] = web::json::value::string(tmp);
 
     tmp = utility::conversions::convertstring(PROJECT_VER);
@@ -290,10 +290,10 @@ bool act_create_response(std::string payload, std::string& response)
     tmp = utility::conversions::convertstring(PROTOCOL_VERSION);
     msg[U("protocolVersion")] = web::json::value::string(tmp);
 
-    tmp = utility::conversions::convertstring("ok");
+    tmp = utility::conversions::convertstring("");
     msg[U("status")] = web::json::value::string(tmp);
 
-    tmp = utility::conversions::convertstring("ok");
+    tmp = utility::conversions::convertstring("");
     msg[U("message")] = web::json::value::string(tmp);
 
     tmp = utility::conversions::convertstring(util_encode_base64(payload));
