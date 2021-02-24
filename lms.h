@@ -28,6 +28,6 @@ static inline int closesocket(int fd)
 #define SD_BOTH SHUT_RDWR
 #endif
 
-SOCKET lms_connect();
+SOCKET lms_connect(bool securePort = false);
 
 #endif

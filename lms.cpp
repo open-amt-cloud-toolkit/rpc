@@ -15,12 +15,21 @@
 #include <netdb.h>
 #endif
 
-SOCKET lms_connect()
+SOCKET lms_connect(bool securePort)
 {
     std::string lmsAddress = "localhost";
-    std::string lmsPort = "16992";
+    std::string lmsPort;
     SOCKET s = INVALID_SOCKET;
     struct addrinfo *addr, hints;
+
+    if (securePort)
+    {
+        lmsPort = "16993";
+    }
+    else
+    {
+        lmsPort = "16992";
+    }
 
 #ifdef _WIN32
     WSADATA wsa;
