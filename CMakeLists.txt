@@ -98,6 +98,8 @@ add_executable (rpc
   commands.cpp
   activation.h
   activation.cpp
+  heartbeat.h
+  heartbeat.cpp
   lms.h
   lms.cpp
   main.cpp

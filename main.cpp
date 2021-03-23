@@ -11,6 +11,7 @@
 #include "lms.h"
 #include "commands.h"
 #include "activation.h"
+#include "heartbeat.h"
 #include "utils.h"
 #include "usage.h"
 #include "args.h"
@@ -243,6 +244,21 @@ int main(int argc, char* argv[])
             catch (...)
             {
                 std::cerr << std::endl << "Received message parse error." << std::endl;
+                return;
+            }
+
+            if (msgMethod.compare("heartbeat_request") == 0)
+            {
+                // create the response
+                std::string response;
+                if (!heartbeat_create_response(response)) return;
+
+                // send it
+                web::websockets::client::websocket_outgoing_message send_websocket_msg;
+                std::string send_websocket_buffer(response);
+                send_websocket_msg.set_utf8_message(send_websocket_buffer);
+                client.send(send_websocket_msg).wait();
+
                 return;
             }
 
