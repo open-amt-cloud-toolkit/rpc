@@ -8,7 +8,7 @@
 
 #include <string>
 
-#define PROTOCOL_VERSION "3.0.0"
+#define PROTOCOL_VERSION "4.0.0"
 
 #ifdef _WIN32
 #define convertstring   to_utf16string
