@@ -248,7 +248,7 @@ int main(int argc, char* argv[])
                 return;
             }
 
-            if (msgMethod.compare("request_secure_config") == 0)
+            if (msgMethod.compare("secure_config_request") == 0)
             {
                 std::string certAlgo;
                 std::string certHash;
@@ -260,10 +260,10 @@ int main(int argc, char* argv[])
                     web::json::value parsed_cert_info = web::json::value::parse(tmp);
 
                     out = parsed_cert_info[U("algorithm")].as_string();
-                    std::string certAlgo = utility::conversions::to_utf8string(out);
+                    certAlgo = utility::conversions::to_utf8string(out);
 
                     out = parsed_cert_info[U("hash")].as_string();
-                    std::string certHash = utility::conversions::to_utf8string(out);
+                    certHash = utility::conversions::to_utf8string(out);
                 }
                 catch (...)
                 {

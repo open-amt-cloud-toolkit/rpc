@@ -32,6 +32,9 @@ bool cmd_is_admin()
 
 bool cmd_get_version(std::string& version)
 {
+    version = "14.0.0";                                     // FIXME: REMOVE WHEN HW AVAILABLE
+    return true;                                            // FIXME: REMOVE WHEN HW AVAILABLE
+
     version.clear();
 
     // initialize HECI interface
@@ -413,6 +416,10 @@ bool cmd_get_lan_interface_settings(lan_interface_settings& lan_interface_settin
 
 bool cmd_start_config_host_based(config_host_based_settings& server_cert, config_host_based_settings& amt_cert)
 {
+    amt_cert.algorithm = "MD5";                              // FIXME: REMOVE WHEN HW AVAILABLE
+    amt_cert.hash = "000102030405060708090a0b0c0d0e0f";      // FIXME: REMOVE WHEN HW AVAILABLE
+    return true;                                             // FIXME: REMOVE WHEN HW AVAILABLE
+
     // initialize HECI interface
     if (heci_Init(NULL, PTHI_CLIENT) == 0) return false;
 

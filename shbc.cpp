@@ -37,7 +37,7 @@ bool shbc_create_response(std::string cert_algo, std::string cert_hash, std::str
 {
     web::json::value msg;
 
-    utility::string_t tmp = utility::conversions::convertstring("response_secure_config");
+    utility::string_t tmp = utility::conversions::convertstring("secure_config_response");
     msg[U("method")] = web::json::value::string(tmp);
 
     tmp = utility::conversions::convertstring("");
