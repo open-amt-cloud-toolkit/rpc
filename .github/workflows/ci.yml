@@ -41,8 +41,7 @@ jobs:
       run: cd build && cmake --build . --config Release
     - name: Build RPC (Debug)
       run: cd build && cmake --build . --config Debug
-
-
+        
   build-linux:
     runs-on: ${{ matrix.os }}
     strategy:
