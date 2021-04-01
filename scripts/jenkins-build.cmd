@@ -14,7 +14,7 @@ set BASE_DIR=%cd%
 set VCPKG_DIR=C:\opt\vcpkg-source
 
 REM build RPC
-cd %BASE_DIR%/rpc
+
 
 if exist "build" rd /q /s "build"
 
@@ -23,4 +23,4 @@ cd build
 echo %VCPKG_DIR%\vcpkg\scripts\buildsystems\vcpkg.cmake
 cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static -DCMAKE_TOOLCHAIN_FILE=%VCPKG_DIR%\vcpkg\scripts\buildsystems\vcpkg.cmake ..
 cmake --build . --config Release
-dir %BASE_DIR%\rpc\build
+dir %BASE_DIR%\build
