@@ -1,3 +1,20 @@
+<a name="v1.2.0"></a>
+## v1.2.0
+
+### Ci
+- breakout docker build for merge only
+
+### Feat
+- update RPC version to 1.2.0.
+- BREAKING CHANGE: add heartbeat capability, bump RPC Protocol version to 4.0.0
+- add unit test framework
+- add hostname to activation info
+- **docker:** add dockerfile support for RPC
+
+### Fix
+- use message status instead, cleanup message fields.
+
+
 <a name="v1.1.0"></a>
 ## [v1.1.0] - 2021-02-09
 
