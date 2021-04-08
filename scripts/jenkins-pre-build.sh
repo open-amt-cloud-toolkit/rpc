@@ -4,14 +4,15 @@
 #   - Ubuntu 18.04
 #
 
-sudo apt install git cmake build-essential curl zip unzip tar pkg-config
+apt update
+apt install git cmake build-essential curl zip unzip tar pkg-config -y
 
 ## current dir - RPC source directory
-export BASE_DIR="$PWD"
+#export BASE_DIR="$PWD"
 
-cd "$BASE_DIR"/rpc
+#cd "$BASE_DIR"/rpc
 ## build vcpkg
-git clone --branch 2020.11-1 https://github.com/microsoft/vcpkg.git
+git -C vcpkg pull || git clone --branch 2020.11-1 https://github.com/microsoft/vcpkg.git vcpkg
 cd vcpkg
 ./bootstrap-vcpkg.sh
 
