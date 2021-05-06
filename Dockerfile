@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #*********************************************************************/
 
-FROM ubuntu:20.10 AS rpc-builder
+FROM ubuntu:20.04 AS rpc-builder
 
 WORKDIR /
 ARG DEBIAN_FRONTEND=noninteractive
