@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #*********************************************************************/
 
-FROM ubuntu:20.04 AS rpc-builder
+FROM ubuntu:20.10 AS rpc-builder
 
 WORKDIR /
 ARG DEBIAN_FRONTEND=noninteractive
@@ -11,7 +11,7 @@ RUN \
   apt-get update -y -qq && \
   apt install -y -qq \
     git cmake build-essential libssl-dev zlib1g-dev \
-    curl unzip zip pkg-config
+    curl unzip zip pkg-config ca-certificates
 RUN git clone https://github.com/open-amt-cloud-toolkit/rpc.git
 WORKDIR /rpc
 RUN mkdir -p build
