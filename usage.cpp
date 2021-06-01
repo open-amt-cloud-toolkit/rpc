@@ -49,15 +49,15 @@ void usage_show_help()
     std::cout << "Examples:"                                                                        << std::endl;
     std::cout << "  # Activate platform using profile1"                                             << std::endl;
     std::cout << "  " << PROJECT_NAME << \
-       " --url wss://localhost:8080 --cmd \"-t activate --profile profile1\""                       << std::endl;
+       " --url wss://192.168.86.100/activate --cmd \"-t activate --profile profile1\""              << std::endl;
     std::cout                                                                                       << std::endl;
     std::cout << "  # Activate platform using profile1 and override DNS detection" << std::endl;
     std::cout << "  " << PROJECT_NAME << \
-       " --url wss://localhost:8080 --cmd \"-t activate --profile profile1\" --dns corp.com"        << std::endl;
+       " --url wss://mycloud.com/activate --cmd \"-t activate --profile profile1\" --dns corp.com"  << std::endl;
     std::cout                                                                                       << std::endl;
     std::cout << "  # Deactivate platform and connect through a proxy"                              << std::endl;
     std::cout << "  " << PROJECT_NAME << \
-       " -u wss://localhost:8080 -c \"-t deactivate --password P@ssw0rd\" -p http://proxy.com:1000" << std::endl;
+       " -u wss://mycloud.com/activate -c \"-t deactivate --password P@ssw0rd\" -p http://proxy.com:1000" << std::endl;
     std::cout                                                                                       << std::endl;
     std::cout << "  # Show all informational items"                                                 << std::endl;
     std::cout << "  " << PROJECT_NAME << " --amtinfo all"                                           << std::endl;
