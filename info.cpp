@@ -20,7 +20,7 @@ void out_text(const std::string name, const std::vector<unsigned char> value, co
     for (unsigned char tmp : value)
     {
         (hex) ? std::cout << std::setfill('0') << std::setw(2) << std::hex << (unsigned int)tmp
-              : std::cout << (unsigned int)tmp;
+              : std::cout << std::dec << (unsigned int)tmp;
 
         if (char_count++ < value.size())
         {
@@ -270,15 +270,41 @@ bool info_get_lan_interface_settings()
     tmp.ip_address.clear();
     tmp.mac_address.clear();
 
-    if (!cmd_get_lan_interface_settings(tmp)) return false;
+    bool hasWired = cmd_get_lan_interface_settings(tmp);
+    if (hasWired)
+    {
+        out_text("LAN Inteface", "wired");
+        out_text("DHCP Enabled", (tmp.dhcp_enabled) ? "true" : "false");
+        out_text("DHCP Mode", (tmp.dhcp_mode == 1) ? "active" : "passive");
+        out_text("Link Status", (tmp.link_status) ? "up" : "down");
+        out_text("IP Address", tmp.ip_address, '.', false);
+        out_text("MAC Address", tmp.mac_address, ':');
+    }
+    
+    tmp.is_enabled = false;
+    tmp.link_status = false;
+    tmp.dhcp_enabled = false;
+    tmp.dhcp_mode = 0;
+    tmp.ip_address.clear();
+    tmp.mac_address.clear();
 
-    out_text("DHCP Enabled", (tmp.dhcp_enabled) ? "true" : "false");
-    out_text("DHCP Mode", (tmp.dhcp_mode == 1) ? "active" : "passive");
-    out_text("Link Status", (tmp.link_status) ? "up" : "down");
-    out_text("IP Address", tmp.ip_address, '.', false);
-    out_text("MAC Address", tmp.mac_address, ':');
+    bool hasWireless = cmd_get_lan_interface_settings(tmp, false);
+    if (hasWireless)
+    {
+        out_text("LAN Inteface", "wireless");
+        out_text("DHCP Enabled", (tmp.dhcp_enabled) ? "true" : "false");
+        out_text("DHCP Mode", (tmp.dhcp_mode == 1) ? "active" : "passive");
+        out_text("Link Status", (tmp.link_status) ? "up" : "down");
+        out_text("IP Address", tmp.ip_address, '.', false);
+        out_text("MAC Address", tmp.mac_address, ':');
+    }
 
-    return true;
+    if (hasWired || hasWireless)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 bool info_get(const std::string info)

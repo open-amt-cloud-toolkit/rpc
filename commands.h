@@ -49,6 +49,6 @@ bool cmd_get_dns_suffix(std::string& suffix);
 bool cmd_get_wired_mac_address(std::vector<unsigned char>& address);
 bool cmd_get_certificate_hashes(std::vector<cert_hash_entry>& hash_entries);
 bool cmd_get_remote_access_connection_status(int& network_status, int& remote_status, int& remote_trigger, std::string& mps_hostname);
-bool cmd_get_lan_interface_settings(lan_interface_settings& lan_interface_settings);
+bool cmd_get_lan_interface_settings(lan_interface_settings& lan_interface_settings, bool wired_interface = true);
 
 #endif

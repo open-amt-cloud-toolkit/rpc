@@ -377,14 +377,14 @@ bool cmd_get_remote_access_connection_status(int& network_status, int& remote_st
     return false;
 }
 
-bool cmd_get_lan_interface_settings(lan_interface_settings& lan_interface_settings)
+bool cmd_get_lan_interface_settings(lan_interface_settings& lan_interface_settings, bool wired_interface)
 {
     // initialize HECI interface
     if (heci_Init(NULL, PTHI_CLIENT) == 0) return false;
 
     // get wired interface
     LAN_SETTINGS lan_settings;
-    UINT32 interface_settings = 0; // wired=0, wireless=1
+    UINT32 interface_settings = (wired_interface) ? 0 : 1; // wired=0, wireless=1
     AMT_STATUS amt_status = pthi_GetLanInterfaceSettings(interface_settings, &lan_settings);
     if (amt_status == 0)
     {
@@ -393,11 +393,13 @@ bool cmd_get_lan_interface_settings(lan_interface_settings& lan_interface_settin
         lan_interface_settings.dhcp_enabled = lan_settings.DhcpEnabled;
         lan_interface_settings.link_status  = lan_settings.LinkStatus;
 
+        lan_interface_settings.ip_address.clear();
         lan_interface_settings.ip_address.push_back((lan_settings.Ipv4Address >> 24) & 0xff);
         lan_interface_settings.ip_address.push_back((lan_settings.Ipv4Address >> 16) & 0xff);
         lan_interface_settings.ip_address.push_back((lan_settings.Ipv4Address >> 8) & 0xff);
         lan_interface_settings.ip_address.push_back((lan_settings.Ipv4Address) & 0xff);
 
+        lan_interface_settings.mac_address.clear();
         lan_interface_settings.mac_address.push_back(lan_settings.MacAddress[0]);
         lan_interface_settings.mac_address.push_back(lan_settings.MacAddress[1]);
         lan_interface_settings.mac_address.push_back(lan_settings.MacAddress[2]);
