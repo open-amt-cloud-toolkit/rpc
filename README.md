@@ -31,9 +31,7 @@ We leverage GitHub Actions as a means to build RPC automatically leveraging Gith
 
 5. By default, the Build Type should be **release**.  
 
-6. Click the **Run Workflow** button.
-
-7. The build time ranges from 15 to 20 minutes.
+6. Click the **Run Workflow** button. Grab a coffee and take a break! The build time ranges from 15 to 20 minutes.
 
 8. Once the download is complete, click the completed job which will feature a green checkmark.
 
