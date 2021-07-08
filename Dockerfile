@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #*********************************************************************/
 
-FROM ubuntu:20.04 AS rpc-builder
+FROM ubuntu:groovy-20210416 AS rpc-builder
 
 WORKDIR /
 ARG DEBIAN_FRONTEND=noninteractive
@@ -23,7 +23,7 @@ WORKDIR /rpc/build
 RUN cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=/rpc/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 RUN cmake --build .
 
-FROM ubuntu:20.04 
+FROM ubuntu:groovy-20210416 
 
 LABEL license='SPDX-License-Identifier: Apache-2.0' \
       copyright='Copyright (c) 2021: Intel'
