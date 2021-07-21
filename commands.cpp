@@ -282,51 +282,54 @@ bool cmd_get_certificate_hashes(std::vector<cert_hash_entry>& hash_entries)
         for (int i = 0; i < (int) amt_hash_handles.Length; i++)
         {
             // get each entry
-            AMT_STATUS status = pthi_GetCertificateHashEntry(amt_hash_handles.Handles[i], &certhash_entry);
+            AMT_STATUS amt_status = pthi_GetCertificateHashEntry(amt_hash_handles.Handles[i], &certhash_entry);
 
-            int hashSize;
-            cert_hash_entry tmp;
-            switch (certhash_entry.HashAlgorithm) {
-            case 0: // MD5
-                hashSize = 16;
-                tmp.algorithm = "MD5";
-                break;
-            case 1: // SHA1
-                hashSize = 20;
-                tmp.algorithm = "SHA1";
-                break;
-            case 2: // SHA256
-                hashSize = 32;
-                tmp.algorithm = "SHA256";
-                break;
-            case 3: // SHA512
-                hashSize = 64;
-                tmp.algorithm = "SHA512";
-                break;
-            default:
-                hashSize = 0;
-                tmp.algorithm = "UNKNOWN";
-                break;
-            }
-
-            if (certhash_entry.IsActive == 1) 
+            if (amt_status == 0)
             {
-                std::string cert_name(certhash_entry.Name.Buffer, certhash_entry.Name.Length);
-                tmp.name = cert_name;
-                tmp.is_default = certhash_entry.IsDefault;
-                tmp.is_active = certhash_entry.IsActive;
-
-                std::string hashString;
-                for (int i = 0; i < hashSize; i++)
-                {
-                    char hex[10];
-                    snprintf(hex, 10, "%02x", certhash_entry.CertificateHash[i]);
-                    hashString += hex;
+                int hashSize;
+                cert_hash_entry tmp;
+                switch (certhash_entry.HashAlgorithm) {
+                case 0: // MD5
+                    hashSize = 16;
+                    tmp.algorithm = "MD5";
+                    break;
+                case 1: // SHA1
+                    hashSize = 20;
+                    tmp.algorithm = "SHA1";
+                    break;
+                case 2: // SHA256
+                    hashSize = 32;
+                    tmp.algorithm = "SHA256";
+                    break;
+                case 3: // SHA512
+                    hashSize = 64;
+                    tmp.algorithm = "SHA512";
+                    break;
+                default:
+                    hashSize = 0;
+                    tmp.algorithm = "UNKNOWN";
+                    break;
                 }
 
-                tmp.hash = hashString;
+                if (certhash_entry.IsActive == 1)
+                {
+                    std::string cert_name(certhash_entry.Name.Buffer, certhash_entry.Name.Length);
+                    tmp.name = cert_name;
+                    tmp.is_default = certhash_entry.IsDefault;
+                    tmp.is_active = certhash_entry.IsActive;
 
-                hash_entries.push_back(tmp);
+                    std::string hashString;
+                    for (int i = 0; i < hashSize; i++)
+                    {
+                        char hex[10];
+                        snprintf(hex, 10, "%02x", certhash_entry.CertificateHash[i]);
+                        hashString += hex;
+                    }
+
+                    tmp.hash = hashString;
+
+                    hash_entries.push_back(tmp);
+                }
             }
         }
 
