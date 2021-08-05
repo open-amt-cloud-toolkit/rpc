@@ -415,3 +415,80 @@ bool cmd_get_lan_interface_settings(lan_interface_settings& lan_interface_settin
 
     return false;
 }
+
+bool cmd_start_config_host_based(config_host_based_settings& server_cert, config_host_based_settings& amt_cert)
+{
+    // initialize HECI interface
+    if (heci_Init(NULL, PTHI_CLIENT) == 0) return false;
+
+    CFG_START_CONFIG_HBASED_REQUEST_INFO request;
+    CFG_START_CONFIG_HBASED_RESPONSE_INFO response;
+
+    memset(&request, 0, sizeof(CFG_START_CONFIG_HBASED_REQUEST_INFO));
+    memset(&response, 0, sizeof(CFG_START_CONFIG_HBASED_RESPONSE_INFO));
+
+    if (server_cert.algorithm == "MD5") 
+    {
+        request.ServerHashAlgorithm = CERT_HASH_ALGORITHM_MD5;
+    }
+    else if (server_cert.algorithm == "SHA1")
+    {
+        request.ServerHashAlgorithm = CERT_HASH_ALGORITHM_SHA1;
+    }
+    else if (server_cert.algorithm == "SHA256")
+    {
+        request.ServerHashAlgorithm = CERT_HASH_ALGORITHM_SHA256;
+    }
+    else if (server_cert.algorithm == "SHA512")
+    {
+        request.ServerHashAlgorithm = CERT_HASH_ALGORITHM_SHA512;
+    }
+    else
+    {
+        return false;
+    }
+
+    int hashSize;
+    std::vector<unsigned char> cert_bytes;
+    util_hex_string_to_bytes(server_cert.hash, cert_bytes);
+    std::copy(std::begin(cert_bytes), std::end(cert_bytes), request.ServerCertHash);
+
+    // start secure host based configuration
+    AMT_STATUS amt_status = pthi_StartConfigHBased(&request, &response);
+
+    if (amt_status == 0)
+    {
+        switch (response.HashAlgorithm)
+        {
+        case CERT_HASH_ALGORITHM_MD5:
+            amt_cert.algorithm = "MD5";
+            hashSize = 16;
+            break;
+        case CERT_HASH_ALGORITHM_SHA1:
+            amt_cert.algorithm = "SHA1";
+            hashSize = 20;
+            break;
+        case CERT_HASH_ALGORITHM_SHA256:
+            amt_cert.algorithm = "SHA256";
+            hashSize = 32;
+            break;
+        case CERT_HASH_ALGORITHM_SHA512:
+            amt_cert.algorithm = "SHA512";
+            hashSize = 64;
+            break;
+        default:
+        case CERT_HASH_ALGORITHM_SHA384:
+        case CERT_HASH_ALGORITHM_SHA224:
+            return false;
+        }
+
+        std::vector<unsigned  char> hash;
+        hash.resize(hashSize);
+        std::copy(response.AMTCertHash, response.AMTCertHash + hashSize, std::begin(hash));
+        util_bytes_to_hex_string(hash, amt_cert.hash);
+
+        return true;
+    }
+
+    return false;
+}

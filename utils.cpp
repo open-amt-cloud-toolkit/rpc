@@ -57,3 +57,32 @@ bool util_format_uuid(std::vector<unsigned char> uuid_bytes, std::string& uuid_s
     return true;
 }
 
+bool util_hex_string_to_bytes(std::string hex_string, std::vector<unsigned char>& hex_bytes)
+{
+    hex_bytes.clear();
+
+    for (int i = 0; i < hex_string.length(); i += 2) 
+    {
+        std::string byte_string = hex_string.substr(i, 2);
+        byte_string[0] = tolower(byte_string[0]);
+        byte_string[1] = tolower(byte_string[1]);
+        unsigned char value = (char)strtol(byte_string.c_str(), NULL, 16);
+        hex_bytes.push_back(value);
+    }
+    
+    return true;
+}
+
+bool util_bytes_to_hex_string(std::vector<unsigned char> hex_bytes, std::string& hex_string)
+{
+    hex_string.clear();
+
+    for (unsigned char hex_char : hex_bytes)
+    {
+        char hex[10];
+        snprintf(hex, 10, "%02x", hex_char);
+        hex_string += hex;
+    }
+    
+    return true;
+}

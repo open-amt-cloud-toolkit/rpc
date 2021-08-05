@@ -11,6 +11,7 @@
 #include "lms.h"
 #include "commands.h"
 #include "activation.h"
+#include "shbc.h"
 #include "heartbeat.h"
 #include "utils.h"
 #include "usage.h"
@@ -62,6 +63,7 @@ int main(int argc, char* argv[])
     std::string arg_info;
     bool arg_verbose = false;
     bool arg_nocertcheck = false;
+    bool secureHostBasedConfig = false;
 
     if (argc == 1)
     {
@@ -185,7 +187,7 @@ int main(int argc, char* argv[])
     memset(&lms_socket, 0, sizeof(SOCKET));
 
     // set receive handler
-    client.set_message_handler([&client, &mx, &cv, &lms_socket, arg_verbose](web::websockets::client::websocket_incoming_message ret_msg)
+    client.set_message_handler([&client, &mx, &cv, &lms_socket, arg_verbose, &secureHostBasedConfig](web::websockets::client::websocket_incoming_message ret_msg)
     {
         // kick the timer
         std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
@@ -262,6 +264,57 @@ int main(int argc, char* argv[])
                 return;
             }
 
+            if (msgMethod.compare("secure_config_request") == 0)
+            {
+                std::string certAlgo;
+                std::string certHash;
+
+                // get server configuration
+                try
+                {
+                    tmp = parsed[U("payload")].as_string();
+                    web::json::value parsed_cert_info = web::json::value::parse(tmp);
+
+                    out = parsed_cert_info[U("algorithm")].as_string();
+                    certAlgo = utility::conversions::to_utf8string(out);
+
+                    out = parsed_cert_info[U("hash")].as_string();
+                    certHash = utility::conversions::to_utf8string(out);
+                }
+                catch (...)
+                {
+                    std::cerr << std::endl << "JSON format error. Unable to parse message." << std::endl;
+                    return;
+                }
+                
+                // send secure config request
+                config_host_based_settings server_cert;
+                config_host_based_settings amt_cert;
+                server_cert.algorithm = certAlgo;
+                server_cert.hash = certHash;
+                if (cmd_start_config_host_based(server_cert, amt_cert))
+                {
+                    // create the response
+                    std::string response;
+                    if (!shbc_create_response(amt_cert.algorithm, amt_cert.hash, response)) return;
+
+                    // send it
+                    web::websockets::client::websocket_outgoing_message send_websocket_msg;
+                    std::string send_websocket_buffer(response);
+                    send_websocket_msg.set_utf8_message(send_websocket_buffer);
+                    client.send(send_websocket_msg).wait();
+
+                    // use secure host post for LMS going forward
+                    secureHostBasedConfig = true;
+
+                    return;
+
+                }
+
+                return;
+            }
+            
+
             // process any messages we can
             //   - if success, done
             //   - if error, get out
@@ -312,7 +365,7 @@ int main(int argc, char* argv[])
             try
             {
                 // conntect to lms
-                lms_socket = lms_connect();
+                lms_socket = lms_connect(secureHostBasedConfig);
             }
             catch (...)
             {
