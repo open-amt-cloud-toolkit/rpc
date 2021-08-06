@@ -14,6 +14,6 @@
 #define convertstring   to_utf8string
 #endif
 
-bool shbc_create_response(std::string cert_algo, std::string cert_hash, std::string& response);
+bool shbc_create_response(std::string cert_algo, std::string cert_hash, bool config_status, std::string& response);
 
 #endif 

@@ -33,7 +33,7 @@ bool get_response_payload(std::string cert_algo, std::string cert_hash, web::jso
     return true;
 }
 
-bool shbc_create_response(std::string cert_algo, std::string cert_hash, std::string& response)
+bool shbc_create_response(std::string cert_algo, std::string cert_hash, bool config_status, std::string& response)
 {
     web::json::value msg;
 
@@ -50,20 +50,31 @@ bool shbc_create_response(std::string cert_algo, std::string cert_hash, std::str
     msg[U("protocolVersion")] = web::json::value::string(tmp);
 
     tmp = utility::conversions::convertstring("");
-    msg[U("status")] = web::json::value::string(tmp);
-
-    tmp = utility::conversions::convertstring("");
     msg[U("message")] = web::json::value::string(tmp);
 
-    // get the activation payload
-    web::json::value responsePayload;
-    if (!get_response_payload(cert_algo, cert_hash, responsePayload)) return false;
+    if (config_status)
+    {
+        // get the activation payload
+        web::json::value responsePayload;
+        if (!get_response_payload(cert_algo, cert_hash, responsePayload)) return false;
 
-    // serialize payload
-    std::string serializedPayload = utility::conversions::to_utf8string(responsePayload.serialize());
-    std::string encodedPayload = util_encode_base64(serializedPayload);
-    utility::string_t payload = utility::conversions::to_string_t(encodedPayload);
-    msg[U("payload")] = web::json::value::string(payload);
+        // serialize payload
+        std::string serializedPayload = utility::conversions::to_utf8string(responsePayload.serialize());
+        std::string encodedPayload = util_encode_base64(serializedPayload);
+        utility::string_t payload = utility::conversions::to_string_t(encodedPayload);
+        msg[U("payload")] = web::json::value::string(payload);
+
+        tmp = utility::conversions::convertstring("success");
+        msg[U("status")] = web::json::value::string(tmp);
+    }
+    else
+    {
+        tmp = utility::conversions::convertstring("");
+        msg[U("payload")] = web::json::value::string(tmp);
+
+        tmp = utility::conversions::convertstring("failed");
+        msg[U("status")] = web::json::value::string(tmp);
+    }
 
     // serialize the entire message
     response = utility::conversions::to_utf8string(msg.serialize());

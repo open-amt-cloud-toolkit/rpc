@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
     std::string arg_info;
     bool arg_verbose = false;
     bool arg_nocertcheck = false;
-    bool secureHostBasedConfig = false;
+    bool shbc_config = false;
 
     if (argc == 1)
     {
@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
     memset(&lms_socket, 0, sizeof(SOCKET));
 
     // set receive handler
-    client.set_message_handler([&client, &mx, &cv, &lms_socket, arg_verbose, &secureHostBasedConfig](web::websockets::client::websocket_incoming_message ret_msg)
+    client.set_message_handler([&client, &mx, &cv, &lms_socket, arg_verbose, &shbc_config](web::websockets::client::websocket_incoming_message ret_msg)
     {
         // kick the timer
         std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
@@ -292,25 +292,21 @@ int main(int argc, char* argv[])
                 config_host_based_settings amt_cert;
                 server_cert.algorithm = certAlgo;
                 server_cert.hash = certHash;
-                if (cmd_start_config_host_based(server_cert, amt_cert))
-                {
-                    // create the response
-                    std::string response;
-                    if (!shbc_create_response(amt_cert.algorithm, amt_cert.hash, response)) return;
+                bool sbhc_success = cmd_start_config_host_based(server_cert, amt_cert);
+                
+                // create the response
+                std::string response;
+                if (!shbc_create_response(amt_cert.algorithm, amt_cert.hash, sbhc_success, response)) return;
 
-                    // send it
-                    web::websockets::client::websocket_outgoing_message send_websocket_msg;
-                    std::string send_websocket_buffer(response);
-                    send_websocket_msg.set_utf8_message(send_websocket_buffer);
-                    client.send(send_websocket_msg).wait();
+                // send it
+                web::websockets::client::websocket_outgoing_message send_websocket_msg;
+                std::string send_websocket_buffer(response);
+                send_websocket_msg.set_utf8_message(send_websocket_buffer);
+                client.send(send_websocket_msg).wait();
 
-                    // use secure host post for LMS going forward
-                    secureHostBasedConfig = true;
-
-                    return;
-
-                }
-
+                // use secure host post for LMS going forward
+                shbc_config = sbhc_success;
+                
                 return;
             }
             
@@ -365,7 +361,7 @@ int main(int argc, char* argv[])
             try
             {
                 // conntect to lms
-                lms_socket = lms_connect(secureHostBasedConfig);
+                lms_socket = lms_connect(shbc_config);
             }
             catch (...)
             {
