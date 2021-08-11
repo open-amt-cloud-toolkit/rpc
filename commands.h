@@ -57,5 +57,7 @@ bool cmd_get_certificate_hashes(std::vector<cert_hash_entry>& hash_entries);
 bool cmd_get_remote_access_connection_status(int& network_status, int& remote_status, int& remote_trigger, std::string& mps_hostname);
 bool cmd_get_lan_interface_settings(lan_interface_settings& lan_interface_settings, bool wired_interface = true);
 bool cmd_start_config_host_based(config_host_based_settings& server_cert, config_host_based_settings& amt_cert);
+bool cmd_get_provisioning_state(int& state);
+bool cmd_stop_configuration();
 
 #endif

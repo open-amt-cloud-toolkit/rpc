@@ -492,3 +492,37 @@ bool cmd_start_config_host_based(config_host_based_settings& server_cert, config
 
     return false;
 }
+
+bool cmd_get_provisioning_state(int& state)
+{
+    state = 0;
+
+    // initialize HECI interface
+    if (heci_Init(NULL, PTHI_CLIENT) == 0) return false;
+
+    // get Control Mode
+    AMT_PROVISIONING_STATE provisioningState;
+    AMT_STATUS amt_status = pthi_GetProvisioningState(&provisioningState);
+    if (amt_status == 0)
+    {
+        state = provisioningState;
+
+        return true;
+    }
+
+    return false;
+}
+
+bool cmd_stop_configuration()
+{
+    // initialize HECI interface
+    if (heci_Init(NULL, PTHI_CLIENT) == 0) return false;
+
+    AMT_STATUS amt_status = pthi_StopConfiguration();
+    if (amt_status == 0)
+    {
+        return true;
+    }
+
+    return false;
+}

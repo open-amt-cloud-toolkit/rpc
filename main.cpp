@@ -293,6 +293,29 @@ int main(int argc, char* argv[])
                 server_cert.algorithm = certAlgo;
                 server_cert.hash = certHash;
                 bool sbhc_success = cmd_start_config_host_based(server_cert, amt_cert);
+
+                if (!sbhc_success)
+                {
+                    int state;
+                    if (cmd_get_provisioning_state(state))
+                    {
+                        switch (state) {
+                        case 0:
+                            std::cout << "Provisioning state already in pre-provisioning." << std::endl;
+                            break;
+                        case 1:
+                            std::cout << "Provisioning state is in-provisioning." << std::endl;
+                            (cmd_stop_configuration()) ? std::cout << "Provisioning state succesfully reset." : std::cout << "Provisioning state could not be reset.";
+                            break;
+                        case 2:
+                            std::cout << "Provisioning state is post-provisioning." << std::endl;
+                            (cmd_stop_configuration()) ? std::cout << "Provisioning state succesfully reset." : std::cout << "Provisioning state could not be reset.";
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+                }
                 
                 // create the response
                 std::string response;
