@@ -7,6 +7,7 @@
 #define __ACTIVATION_H__
 
 #include <string>
+#include <vector>
 
 #define PROTOCOL_VERSION "4.1.0"
 
@@ -17,6 +18,6 @@
 #endif
 
 bool act_create_request(std::string commands, std::string dns_suffix, std::string& request);
-bool act_create_response(std::string payload, std::string& response);
+bool act_create_response(std::vector<unsigned char> payload, std::string& response);
 
 #endif 

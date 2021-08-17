@@ -264,7 +264,12 @@ bool act_create_request(std::string commands, std::string dns_suffix, std::strin
 
     // serialize payload
     std::string serializedPayload = utility::conversions::to_utf8string(activationPayload.serialize());
-    std::string encodedPayload = util_encode_base64(serializedPayload);
+    std::vector<unsigned char> serializedPayloadVector;
+    for (int i = 0; i < serializedPayload.size(); i++)
+    {
+        serializedPayloadVector.push_back(serializedPayload[i]);
+    }
+    std::string encodedPayload = util_encode_base64(serializedPayloadVector);
     utility::string_t payload = utility::conversions::to_string_t(encodedPayload);
     msg[U("payload")] = web::json::value::string(payload);
 
@@ -274,7 +279,7 @@ bool act_create_request(std::string commands, std::string dns_suffix, std::strin
     return true;
 }
 
-bool act_create_response(std::string payload, std::string& response)
+bool act_create_response(std::vector<unsigned char> payload, std::string& response)
 {
     web::json::value msg;
 

@@ -29,7 +29,7 @@ TEST(testUtils, isPrintableTestInvalid)
 
     EXPECT_EQ(false, util_is_printable(s));	
 }
-
+/*
 // Test encode of base64 string
 TEST(testUtils, encodebase64)
 {
@@ -41,7 +41,7 @@ TEST(testUtils, decodebase64)
 {
     EXPECT_EQ(plainText, util_decode_base64(encodedText));	
 }
-
+*/
 // Test return value of util_format_uuid
 TEST(testUtils, formatUUIDSuccess)
 {

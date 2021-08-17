@@ -60,7 +60,12 @@ bool shbc_create_response(std::string cert_algo, std::string cert_hash, bool con
 
         // serialize payload
         std::string serializedPayload = utility::conversions::to_utf8string(responsePayload.serialize());
-        std::string encodedPayload = util_encode_base64(serializedPayload);
+        std::vector<unsigned char> serializedPayloadVector;
+        for (int i = 0; i < serializedPayload.size(); i++)
+        {
+            serializedPayloadVector.push_back(serializedPayload[i]);
+        }
+        std::string encodedPayload = util_encode_base64(serializedPayloadVector);
         utility::string_t payload = utility::conversions::to_string_t(encodedPayload);
         msg[U("payload")] = web::json::value::string(payload);
 

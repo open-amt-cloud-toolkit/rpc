@@ -8,7 +8,7 @@
 #include <string>
 #include <cpprest/streams.h>
 
-std::string util_encode_base64(std::string str)
+std::string util_encode_base64(std::vector<unsigned char> str)
 {
     std::vector<unsigned char> strVector(str.begin(), str.end());
     utility::string_t base64 = utility::conversions::to_base64(strVector);
@@ -17,11 +17,11 @@ std::string util_encode_base64(std::string str)
     return encodedString;
 }
 
-std::string util_decode_base64(std::string str)
+std::vector<unsigned char> util_decode_base64(std::string str)
 {
     utility::string_t serializedData = utility::conversions::to_string_t(str);
     std::vector<unsigned char> strVector = utility::conversions::from_base64(serializedData);
-    std::string decodedString(strVector.begin(), strVector.end());
+    std::vector<unsigned char> decodedString(strVector.begin(), strVector.end());
 
     return decodedString;
 }

@@ -212,7 +212,7 @@ int main(int argc, char* argv[])
             std::string msgStatus = "";
             std::string msgMessage = "";
             std::string msgPayload = "";
-            std::string payloadDecoded = "";
+            std::vector<unsigned char> payloadDecoded;
 
             if ( !parsed.has_field(U("method"))          || !parsed.has_field(U("apiKey")) || !parsed.has_field(U("appVersion"))  || 
                  !parsed.has_field(U("protocolVersion")) || !parsed.has_field(U("status")) || !parsed.has_field(U("message"))     ||
@@ -294,6 +294,9 @@ int main(int argc, char* argv[])
                 server_cert.hash = certHash;
                 bool sbhc_success = cmd_start_config_host_based(server_cert, amt_cert);
 
+                // wait for configuration to settle down
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+
                 if (!sbhc_success)
                 {
                     int state;
@@ -305,11 +308,11 @@ int main(int argc, char* argv[])
                             break;
                         case 1:
                             std::cout << "Provisioning state is in-provisioning." << std::endl;
-                            (cmd_stop_configuration()) ? std::cout << "Provisioning state succesfully reset." : std::cout << "Provisioning state could not be reset.";
+                            (cmd_stop_configuration()) ? std::cout << "Provisioning state succesfully reset." << std::endl : std::cout << "Provisioning state could not be reset." << std::endl;
                             break;
                         case 2:
                             std::cout << "Provisioning state is post-provisioning." << std::endl;
-                            (cmd_stop_configuration()) ? std::cout << "Provisioning state succesfully reset." : std::cout << "Provisioning state could not be reset.";
+                            (cmd_stop_configuration()) ? std::cout << "Provisioning state succesfully reset." << std::endl : std::cout << "Provisioning state could not be reset." << std::endl;
                             break;
                         default:
                             break;
@@ -395,11 +398,34 @@ int main(int argc, char* argv[])
             if (arg_verbose)
             {
                 std::cout << std::endl << "vvv -- message to AMT -- vvv" << std::endl;
-                std::cout << payloadDecoded << std::endl;
+
+                if (shbc_config)
+                {
+                    std::cout << "message size is " << payloadDecoded.size() << " bytes." << std::endl;
+                    for (int i = 0; i < payloadDecoded.size(); i++)
+                    {
+                        printf("%02x ", payloadDecoded[i]);
+                        if ((i > 0) && (i % 32 == 0))
+                        {
+                            std::cout << std::endl;
+                        }
+                    }
+                    std::cout << std::endl;
+                }
+                else
+                {
+                    for (int i = 0; i < payloadDecoded.size(); i++)
+                    {
+                        printf("%c", payloadDecoded[i]);
+                    }
+                }
+                std::cout << std::endl;
             } 
 
             // send message to LMS
-            if (send(lms_socket, payloadDecoded.c_str(), (int)payloadDecoded.length(), 0) < 0)
+            int sendPayloudStatus = send(lms_socket, (const char *) payloadDecoded.data(), payloadDecoded.size(), 0);
+
+            if (sendPayloudStatus < 0)
             {
                 throw std::runtime_error("error: socket send");
             }
@@ -418,7 +444,8 @@ int main(int argc, char* argv[])
             // read until connection is closed by LMS
             while (1)
             {
-                std::string superBuffer = "";
+                std::vector<unsigned char> superBuffer;
+                superBuffer.clear();
                 while (1)
                 {
                     int res = select(fd, &rset, NULL, NULL, &timeout);
@@ -436,7 +463,9 @@ int main(int argc, char* argv[])
                     res = recv(lms_socket, recv_buffer, 4096, 0);
                     if (res > 0)
                     {
-                        superBuffer += recv_buffer;
+                        for (int i = 0; i < res; i++) {
+                            superBuffer.push_back(recv_buffer[i]);
+                        }
                     }
                     else if (res < 0)
                     {
@@ -452,16 +481,36 @@ int main(int argc, char* argv[])
                 } // while select()
 
                 // if there is some data send it
-                if (superBuffer.length() > 0) 
+                if (superBuffer.size() > 0)
                 {
                     if (arg_verbose)
                     {
                         std::cout << std::endl << "^^^ -- message from AMT -- ^^^" << std::endl;
-                        std::cout << superBuffer << std::endl;
+                        if (shbc_config)
+                        {
+                            std::cout << "message size is " << superBuffer.size() << " bytes." << std::endl;
+                            for (int i = 0; i < superBuffer.size(); i++)
+                            {
+                                printf("%02x ", superBuffer[i]);
+                                if ((i > 0) && (i % 32 == 0))
+                                {
+                                    std::cout << std::endl;
+                                }
+                            }
+                            std::cout << std::endl;
+                        }
+                        else
+                        {
+                            for (int i = 0; i < superBuffer.size(); i++)
+                            {
+                                printf("%c", superBuffer[i]);
+                            }
+                        }
+                        std::cout << std::endl;
                     }
 
                     std::string response;
-                    if (!act_create_response(superBuffer.c_str(), response)) return;
+                    if (!act_create_response(superBuffer, response)) return;
 
                     web::websockets::client::websocket_outgoing_message send_websocket_msg;
                     std::string send_websocket_buffer(response);
