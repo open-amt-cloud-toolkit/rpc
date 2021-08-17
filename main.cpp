@@ -405,7 +405,7 @@ int main(int argc, char* argv[])
                     for (int i = 0; i < payloadDecoded.size(); i++)
                     {
                         printf("%02x ", payloadDecoded[i]);
-                        if ((i > 0) && (i % 32 == 0))
+                        if ((i > 0) && ((i+1) % 32 == 0))
                         {
                             std::cout << std::endl;
                         }
@@ -492,7 +492,7 @@ int main(int argc, char* argv[])
                             for (int i = 0; i < superBuffer.size(); i++)
                             {
                                 printf("%02x ", superBuffer[i]);
-                                if ((i > 0) && (i % 32 == 0))
+                                if ((i > 0) && ((i + 1) % 32 == 0))
                                 {
                                     std::cout << std::endl;
                                 }
