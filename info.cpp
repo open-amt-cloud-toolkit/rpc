@@ -273,7 +273,7 @@ bool info_get_lan_interface_settings()
     bool hasWired = cmd_get_lan_interface_settings(tmp);
     if (hasWired)
     {
-        out_text("LAN Inteface", "wired");
+        out_text("LAN Interface", "wired");
         out_text("DHCP Enabled", (tmp.dhcp_enabled) ? "true" : "false");
         out_text("DHCP Mode", (tmp.dhcp_mode == 1) ? "active" : "passive");
         out_text("Link Status", (tmp.link_status) ? "up" : "down");
@@ -291,7 +291,7 @@ bool info_get_lan_interface_settings()
     bool hasWireless = cmd_get_lan_interface_settings(tmp, false);
     if (hasWireless)
     {
-        out_text("LAN Inteface", "wireless");
+        out_text("LAN Interface", "wireless");
         out_text("DHCP Enabled", (tmp.dhcp_enabled) ? "true" : "false");
         out_text("DHCP Mode", (tmp.dhcp_mode == 1) ? "active" : "passive");
         out_text("Link Status", (tmp.link_status) ? "up" : "down");
