@@ -15,7 +15,7 @@ set VCPKG_DIR=C:\opt\vcpkg-source
 cd %VCPKG_DIR%
 
 REM build vcpkg
-git clone --branch 2020.11-1 https://github.com/microsoft/vcpkg.git
+git clone --branch 2021.05.12 https://github.com/microsoft/vcpkg.git
 cd vcpkg
 cmd /c bootstrap-vcpkg.bat
 
