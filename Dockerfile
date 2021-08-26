@@ -15,7 +15,7 @@ RUN \
 RUN git clone https://github.com/open-amt-cloud-toolkit/rpc.git
 WORKDIR /rpc
 RUN mkdir -p build
-RUN git clone --branch 2020.11-1 https://github.com/microsoft/vcpkg.git
+RUN git clone --branch 2021.05.12 https://github.com/microsoft/vcpkg.git
 RUN cd vcpkg && ./bootstrap-vcpkg.sh
 RUN ./vcpkg/vcpkg install cpprestsdk[websockets]
 
