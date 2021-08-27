@@ -28,7 +28,7 @@ sudo yum install cmake
 Using a Terminal window with the PATH and devtoolset enabled per the Dependencies.
 
 ```
-git clone -b 2020.11-1 https://github.com/microsoft/vcpkg.git
+git clone -b 2021.05.12 https://github.com/microsoft/vcpkg.git
 cd vcpkg
 ./bootstrap-vcpkg.sh
 ./vcpkg install cpprestsdk[websockets]
