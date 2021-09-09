@@ -50,8 +50,9 @@ export PATH=/home/user/Downloads/git:$PATH
 Using a Terminal window with the PATH and devtoolset enabled per the Dependencies.
 
 ```
-git clone -b 2021.05.12 https://github.com/microsoft/vcpkg.git
+git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg
+git checkout 772d435ba18bf2f342458e0187ab7b48b84fe3f0
 ./bootstrap-vcpkg.sh
 ./vcpkg install cpprestsdk[websockets]
 ```

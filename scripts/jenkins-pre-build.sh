@@ -12,8 +12,9 @@ apt install git cmake build-essential curl zip unzip tar pkg-config -y
 
 #cd "$BASE_DIR"/rpc
 ## build vcpkg
-git -C vcpkg pull || git clone --branch 2021.05.12 https://github.com/microsoft/vcpkg.git vcpkg
+git -C vcpkg pull || git clone https://github.com/microsoft/vcpkg.git vcpkg
 cd vcpkg
+git checkout 772d435ba18bf2f342458e0187ab7b48b84fe3f0
 ./bootstrap-vcpkg.sh
 
 ## install CPPRestSDK
