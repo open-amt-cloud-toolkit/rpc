@@ -24,7 +24,7 @@ jobs:
       - name: Create Build Dir
         run: mkdir build
       - name: Clone
-        run: git clone --branch 2021.05.12 https://github.com/microsoft/vcpkg.git
+        run: git clone https://github.com/microsoft/vcpkg.git && cd vcpkg && git checkout 772d435ba18bf2f342458e0187ab7b48b84fe3f0
       - name: Build VCPKG
         run: cd vcpkg && bootstrap-vcpkg.bat
         shell: cmd
@@ -71,7 +71,7 @@ jobs:
       - name: Create Build Dir
         run: mkdir build
       - name: Clone
-        run: git clone --branch 2021.05.12 https://github.com/microsoft/vcpkg.git
+        run: git clone https://github.com/microsoft/vcpkg.git && cd vcpkg && git checkout 772d435ba18bf2f342458e0187ab7b48b84fe3f0
       - name: Build VCPKG
         run: cd vcpkg && ./bootstrap-vcpkg.sh
         shell: bash
