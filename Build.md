@@ -25,8 +25,9 @@ sudo apt install git cmake build-essential curl zip unzip tar pkg-config
 Open a Terminal window.
 
 ```
-git clone -b 2020.11-1 https://github.com/microsoft/vcpkg.git
+git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg
+git checkout 772d435ba18bf2f342458e0187ab7b48b84fe3f0
 ./bootstrap-vcpkg.sh
 ./vcpkg install cpprestsdk[websockets]
 ```
@@ -68,8 +69,9 @@ Steps below are for Windows 10 and Visual Studio 2019 Professional.
 Open an x64 Native Tools Command Prompt for Visual Studio 2019.
 
 ```
-git clone -b 2020.11-1 https://github.com/microsoft/vcpkg.git
+git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg
+git checkout 772d435ba18bf2f342458e0187ab7b48b84fe3f0
 bootstrap-vcpkg.bat
 vcpkg install cpprestsdk[websockets]:x64-windows-static
 ```

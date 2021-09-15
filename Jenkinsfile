@@ -1,62 +1,33 @@
 pipeline {
-    agent none
-    triggers {cron '@daily'}
+    agent {
+        label 'docker-amt'
+    }
     options {
         buildDiscarder(logRotator(numToKeepStr: '5', daysToKeepStr: '30'))
         timestamps()
         timeout(unit: 'HOURS', time: 2)
     }
     
+    
     stages {
-        stage ('Parallel') {
-            parallel {
-                stage ('Linux') {
-                    agent { label 'docker-amt' }
-                    stages {
-                        stage ('Cloning Repository') {
-                            steps {
-                                script {
-                                    scmCheckout {
-                                        clean = true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                stage ('Windows') {
-                    agent { label 'openamt-win' }
-                    stages {
-                        stage ('Cloning Repository') {
-                            steps {
-                                script {
-                                    scmCheckout {
-                                        clean = true
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        stage ('Static Code Scan - Protex') {
-            agent { label 'docker-amt' }
+        stage ('Cloning Repository') {
             steps {
                 script {
-                    staticCodeScan {
-                        // generic
-                        scanners             = ['protex']
-                        scannerType          = ['c','c++']
-
-                        protexProjectName    = 'OpenAMT - RPC'
-                        // internal, do not change
-                        protexBuildName      = 'rrs-generic-protex-build'
+                    scmCheckout {
+                        clean = true
                     }
                 }
             }
         }
-
+        stage('Static Code Scan - Protex') {
+            environment{
+                PROJECT_NAME               = 'OpenAMT - RPC'
+                SCANNERS                   = 'protex'
+            }
+            steps {
+                rbheStaticCodeScan()
+            }
+        }
         stage ('Parallel Builds') {
             parallel {
                 stage ('Linux') {
@@ -72,6 +43,7 @@ pipeline {
                             steps {
                                 sh './scripts/jenkins-pre-build.sh'
                                 sh './scripts/jenkins-build.sh'
+                                stash includes: 'build/rpc', name: 'linux-rpc-app'
                             }
                         }
                         stage ('Archive') {
@@ -79,7 +51,6 @@ pipeline {
                                 archiveArtifacts allowEmptyArchive: true, artifacts: 'build/rpc', caseSensitive: false, onlyIfSuccessful: true
                             }
                         }
-                        
                     }
                 }
                 stage ('Windows') {
@@ -90,7 +61,7 @@ pipeline {
                                 bat 'scripts\\jenkins-pre-build.cmd'
                                 bat 'scripts\\jenkins-build.cmd'
                                 // prepare stash for the binary scan
-                                stash includes: "**/*.exe", name: 'rpc-app'
+                                stash includes: '**/*.exe', name: 'win-rpc-app'
                             }
                         }
                         stage ('Archive') {
@@ -102,70 +73,81 @@ pipeline {
                 }
             }
         }
-        stage ('Parallel Scans') {
-            parallel {
-                stage ('Static Code Scan Linux') {
-                    agent { label 'docker-amt' }
-                    steps {
-                        script {
-                            staticCodeScan {
-                                // generic
-                                scanners             = ['bdba','klocwork']
-                                scannerType          = 'c++'
 
-                                protecodeGroup          = '25'
-                                protecodeScanName       = 'rpc-zip'
-                                protecodeDirectory      = './build/rpc'
-                                
-                                klockworkPreBuildScript = './scripts/jenkins-pre-build.sh'
-                                klockworkBuildCommand = './scripts/jenkins-build.sh'
-                                klockworkProjectName  = 'Panther Point Creek'
-                                klockworkIgnoreCompileErrors = true
-                            }
+        stage('Prep Binary') {
+            steps {
+                sh 'mkdir -p ./bin'
+                dir('./bin') {
+                    unstash 'linux-rpc-app'
+                    unstash 'win-rpc-app'
+                }
+            }
+        }
+        stage('Linux Scans') {
+            environment{
+                PROJECT_NAME               = 'OpenAMT - RPC - Linux'
+                SCANNERS                   = 'bdba,klocwork'
+
+                // protecode details
+                PROTECODE_BIN_DIR          = './bin'
+                PROTECODE_INCLUDE_SUB_DIRS = true
+                
+                // klocwork details
+                KLOCWORK_SCAN_TYPE             = 'c++'
+                KLOCWORK_PRE_BUILD_SCRIPT      = './scripts/jenkins-pre-build.sh'
+                KLOCWORK_BUILD_COMMAND         = './scripts/jenkins-build.sh'
+                KLOCWORK_IGNORE_COMPILE_ERRORS = true
+
+                // publishArtifacts details
+                PUBLISH_TO_ARTIFACTORY         = true
+            }
+            steps {
+                rbheStaticCodeScan()
+                dir('artifacts/Klockwork'){
+                    sh 'cp kw_report.html kw_report_linux.html'
+                    sh 'cp kw_report.csv kw_report_linux.csv'
+                    archiveArtifacts allowEmptyArchive: true, artifacts: 'kw_report_linux.html'
+                    archiveArtifacts allowEmptyArchive: true, artifacts: 'kw_report_linux.csv'
+                }
+                
+            }
+        }
+        stage('Windows Scans'){
+            agent { label 'openamt-win' }
+            stages{
+                stage ('Windows Scans - klocwork') {
+                    environment {
+                        PROJECT_NAME                   = 'OpenAMT - RPC - Windows'
+                        SCANNERS                       = 'klocwork'
+
+                        // klocwork details
+                        KLOCWORK_SCAN_TYPE             = 'c++'
+                        KLOCWORK_PRE_BUILD_SCRIPT      = 'scripts\\jenkins-pre-build.cmd'
+                        KLOCWORK_BUILD_COMMAND         = 'scripts\\jenkins-build.cmd'
+                        KLOCWORK_IGNORE_COMPILE_ERRORS = true
+
+                        // publishArtifacts details
+                        PUBLISH_TO_ARTIFACTORY         = true
+                    }
+                    steps {
+                        rbheStaticCodeScan()
+                        dir('artifacts\\Klockwork'){
+                            bat 'copy kw_report.html kw_report_windows.html'
+                            bat 'copy kw_report.csv kw_report_windows.csv'
+                            stash includes: 'kw_report_windows.*', name: 'win-kwreports'
+                            archiveArtifacts allowEmptyArchive: true, artifacts: 'kw_report_windows.html'
+                            archiveArtifacts allowEmptyArchive: true, artifacts: 'kw_report_windows.csv'
                         }
                     }
                 }
-                stage ('Static Code Scan Windows') {
-                    stages {
-                        stage ('Static Code Scan Windows - Klockwork') {
-                            agent { label 'openamt-win' }
-                            steps {
-                                script {
-                                    staticCodeScan {
-                                        // generic
-                                        scanners             = ['klocwork']
-                                        scannerType          = 'c++'
-                                        
-                                        klockworkPreBuildScript = 'scripts\\jenkins-pre-build.cmd'
-                                        klockworkBuildCommand = 'scripts\\jenkins-build.cmd'
-                                        klockworkProjectName  = 'Panther Point Creek'
-                                        klockworkIgnoreCompileErrors = true
-                                    }
-                                }
-                            }
-                        }
-                        stage ('Static Code Scan Windows - BDBA') {
-                            agent { label 'docker-amt' }
-                            steps {
-                                script {
-                                    sh "mkdir -p bdbaScanDir"
-                                    dir("bdbaScanDir") {
-                                        unstash 'rpc-app'
-                                    }
-                                    staticCodeScan {
-                                        // generic
-                                        scanners             = ['bdba']
-                                        scannerType          = 'c++'
-                                        
-                                        protecodeGroup          = '25'
-                                        protecodeScanName       = 'rpc-zip'
-                                        protecodeDirectory      = 'bdbaScanDir'
-                                    }
-                                }
-                            }
-                        }
-                    }
+            }
+        }
+        stage('Publish Artifacts'){
+            steps{
+                dir('artifacts/Klockwork'){
+                    unstash 'win-kwreports'
                 }
+                publishArtifacts()
             }
         }
     }

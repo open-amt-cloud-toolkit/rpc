@@ -7,6 +7,7 @@
 #include <thread>
 #include <cpprest/ws_client.h>
 #include <cpprest/json.h>
+#include <algorithm>
 #include "port.h"
 #include "lms.h"
 #include "commands.h"
@@ -271,7 +272,22 @@ int main(int argc, char* argv[])
                 g_timeout_val = 0;
 
                 // exit
-                std::cout << std::endl << msgMessage << std::endl;
+                try {
+                    std::cout << std::endl;
+                    utility::string_t tmp = utility::conversions::convertstring(msgMessage);
+                    web::json::value parsed = web::json::value::parse(tmp);
+                    for (const auto& obj : parsed.as_object()) {
+                        std::string key = utility::conversions::to_utf8string(obj.first);
+                        std::string value = utility::conversions::to_utf8string(obj.second.serialize());
+                        value.erase(std::remove(value.begin(), value.end(), '"'), value.end());
+                        std::cout << key << ": " << value << std::endl;
+                    }
+                }
+                catch (...)
+                {
+                    std::cout << std::endl << msgMessage << std::endl;
+                }
+
                 return;
             }
             else if (msgStatus.compare("failed")==0)
@@ -280,7 +296,22 @@ int main(int argc, char* argv[])
                 g_timeout_val = 0;
 
                 // exit
-                std::cout << std::endl << msgMessage << std::endl;
+                try {
+                    std::cout << std::endl;
+                    utility::string_t tmp = utility::conversions::convertstring(msgMessage);
+                    web::json::value parsed = web::json::value::parse(tmp);
+                    for (const auto& obj : parsed.as_object()) {
+                        std::string key = utility::conversions::to_utf8string(obj.first);
+                        std::string value = utility::conversions::to_utf8string(obj.second.serialize());
+                        value.erase(std::remove(value.begin(), value.end(), '"'), value.end());
+                        std::cout << key << ": " << value << std::endl;
+                    }
+                }
+                catch (...)
+                {
+                    std::cout << std::endl << msgMessage << std::endl;
+                }
+
                 return;
             }
 

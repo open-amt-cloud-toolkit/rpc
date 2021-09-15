@@ -15,8 +15,9 @@ set VCPKG_DIR=C:\opt\vcpkg-source
 cd %VCPKG_DIR%
 
 REM build vcpkg
-git clone --branch 2020.11-1 https://github.com/microsoft/vcpkg.git
+git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg
+git checkout 772d435ba18bf2f342458e0187ab7b48b84fe3f0
 cmd /c bootstrap-vcpkg.bat
 
 REM install CPPRestSDK

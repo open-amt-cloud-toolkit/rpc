@@ -7,8 +7,6 @@
 
 ### Ci
 - update scanning
-- remove Jenkins chron
-- **changelog:** add automation for changelog generation
 
 ### Docs
 - **readme:** wording
@@ -25,8 +23,22 @@
 
 ### Fix
 - klockwork reported success / failure check fix
-- update examples text and version
 - **spelling:** lan inteface -> lan interface in amtinfo
+
+<a name="v1.2.2"></a>
+## [v1.2.2] - 2021-06-22
+### Ci
+- remove Jenkins chron
+- **changelog:** add automation for changelog generation
+
+### Fix
+- update examples text and version
+
+<a name="v1.2.1"></a>
+## [v1.2.1] - 2021-05-06
+
+### Fix
+**docker:** add missing ca-certs
 
 <a name="v1.2.0"></a>
 ## v1.2.0
