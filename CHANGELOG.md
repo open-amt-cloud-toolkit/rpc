@@ -1,3 +1,30 @@
+<a name="v2.0.0"></a>
+## v2.0.0
+
+### Build
+- bump version to v1.3.0
+- bump version to v2.0.0
+
+### Ci
+- update scanning
+
+### Docs
+- **readme:** wording
+- **readme:** update readme
+- **security:** added SECURITY.md file
+
+### Feat
+- update to OpenSSL 1.1.1l
+- update workflows and Docker build.
+- Update to latest vcpkg
+- Update docs and scripts for Windows and Ubuntu.
+- format json status messages
+- add AMT wireless adapter info to amtinfo LAN settings.
+
+### Fix
+- klockwork reported success / failure check fix
+- **spelling:** lan inteface -> lan interface in amtinfo
+
 <a name="v1.2.2"></a>
 ## [v1.2.2] - 2021-06-22
 ### Ci
