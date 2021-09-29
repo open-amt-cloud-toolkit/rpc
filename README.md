@@ -27,7 +27,7 @@ We leverage GitHub Actions as a means to build RPC automatically leveraging Gith
 
 3. Click the **Run Workflow** dropdown. 
 
-4. Select the **Branch: master**, or a preferred version, from the **Use workflow from** dropdown. 
+4. Select the **Branch: main**, or a preferred version, from the **Use workflow from** dropdown. 
 
 5. By default, the Build Type should be **release**.  
 
