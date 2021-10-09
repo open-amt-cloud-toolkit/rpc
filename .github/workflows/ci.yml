@@ -7,7 +7,7 @@ name: Build RPC (Native)
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
    
 env:
   BUILD_TYPE: Release
