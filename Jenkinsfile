@@ -24,6 +24,11 @@ pipeline {
                 PROJECT_NAME               = 'OpenAMT - RPC'
                 SCANNERS                   = 'protex'
             }
+            when {
+                anyOf {
+                    branch 'main';
+                }
+            }
             steps {
                 rbheStaticCodeScan()
             }
