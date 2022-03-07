@@ -1,6 +1,5 @@
 pipeline {
     agent none
-    triggers {cron '@daily'}
     options {
         buildDiscarder(logRotator(numToKeepStr: '5', daysToKeepStr: '30'))
         timestamps()
