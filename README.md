@@ -44,3 +44,15 @@ We leverage GitHub Actions as a means to build RPC automatically leveraging Gith
 2. Choose the **Delete workflow run** option.
 
 For detailed documentation about RPC and using it to activate a device, see the [docs](https://open-amt-cloud-toolkit.github.io/docs/)
+
+## Additional Resources
+
+- For detailed documentation and Getting Started, [visit the docs site](https://open-amt-cloud-toolkit.github.io/docs).
+
+- Looking to contribute? [Find more information here about contribution guidelines and practices](.\CONTRIBUTING.md).
+
+- Find a bug? Or have ideas for new features? [Open a new Issue](https://github.com/open-amt-cloud-toolkit/rps/issues).
+
+- Need additional support or want to get the latest news and events about Open AMT? Connect with the team directly through Discord.
+
+    [![Discord Banner 1](https://discordapp.com/api/guilds/1063200098680582154/widget.png?style=banner2)](https://discord.gg/yrcMp2kDWh)
